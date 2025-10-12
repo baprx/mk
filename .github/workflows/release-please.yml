@@ -7,7 +7,6 @@ on:
 
 permissions:
   contents: write
-  issues: write
   pull-requests: write
 
 jobs:
@@ -16,4 +15,5 @@ jobs:
     steps:
       - name: Run Release Please
         uses: googleapis/release-please-action@c2a5a2bd6a758a0937f1ddb1e8950609867ed15c # v4
-        id: release
+        with:
+          token: ${{ secrets.GH_PAT }}
