@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.1](https://github.com/baprx/mk/compare/v0.5.0...v0.5.1) (2025-10-12)
+
+
+### Bug Fixes
+
+* enabled vendored openssl feature to fix build on aarch64-unknown-linux-gnu target ([4eac435](https://github.com/baprx/mk/commit/4eac43511a18436a7f45d34d075b0dd6efd369c5))
+* streamline test execution by removing redundant parsing step ([052baed](https://github.com/baprx/mk/commit/052baede3d216a677fc49e8772f08cfec8e4b701))
+
 ## [0.5.0](https://github.com/baprx/scripts/compare/mk-v0.4.0...mk-v0.5.0) (2025-10-05)
 
 
