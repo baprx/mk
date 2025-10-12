@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.5](https://github.com/baprx/mk/compare/v0.5.4...v0.5.5) (2025-10-12)
+
+
+### Bug Fixes
+
+* **ci:** use cross-rs/cross for cross-compilation ([#12](https://github.com/baprx/mk/issues/12)) ([36c8561](https://github.com/baprx/mk/commit/36c8561f54f2f726490abf1ff2ec7077f78a65c2))
+
 ## [0.5.4](https://github.com/baprx/mk/compare/v0.5.3...v0.5.4) (2025-10-12)
 
 
