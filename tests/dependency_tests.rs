@@ -115,7 +115,7 @@ fn test_ansible_deps_command() {
     // Run deps command
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["deps", &project_path, "dev"])
+        .args(["deps", &project_path, "dev"])
         .output()
         .unwrap();
 
@@ -148,7 +148,7 @@ fn test_ansible_check_without_deps_fails() {
     // Try to run check without installing dependencies first
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["check", &project_path, "dev"])
+        .args(["check", &project_path, "dev"])
         .output()
         .unwrap();
 
@@ -178,14 +178,14 @@ fn test_ansible_check_after_deps_succeeds() {
     // First install dependencies
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["deps", &project_path, "dev"])
+        .args(["deps", &project_path, "dev"])
         .output()
         .unwrap();
 
     // Now run check - should generate the command successfully
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["check", &project_path, "dev"])
+        .args(["check", &project_path, "dev"])
         .output()
         .unwrap();
 
@@ -207,7 +207,7 @@ fn test_helm_deps_command() {
     // Run deps command
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["deps", &project_path, "dev"])
+        .args(["deps", &project_path, "dev"])
         .output()
         .unwrap();
 
@@ -255,7 +255,7 @@ fn test_helm_template_auto_downloads_deps() {
     // Run template without explicitly running deps first
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["template", &project_path, "dev"])
+        .args(["template", &project_path, "dev"])
         .output()
         .unwrap();
 
@@ -294,7 +294,7 @@ fn test_helm_template_after_deleting_charts() {
     // First run deps to download charts
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["deps", &project_path, "dev"])
+        .args(["deps", &project_path, "dev"])
         .output()
         .unwrap();
 
@@ -307,7 +307,7 @@ fn test_helm_template_after_deleting_charts() {
     // Now run template - should re-download
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["template", &project_path, "dev"])
+        .args(["template", &project_path, "dev"])
         .output()
         .unwrap();
 

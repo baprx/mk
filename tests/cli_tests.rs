@@ -139,7 +139,7 @@ fn test_terraform_detection() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["check", &project_path, "dev"])
+        .args(["check", &project_path, "dev"])
         .assert()
         .stderr(predicate::str::contains("Detected terraform"));
 }
@@ -151,7 +151,7 @@ fn test_helm_detection() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["template", &project_path, "dev"])
+        .args(["template", &project_path, "dev"])
         .assert()
         .stderr(predicate::str::contains("Detected helm"));
 }
@@ -163,7 +163,7 @@ fn test_kustomize_detection() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["template", &project_path, "dev"])
+        .args(["template", &project_path, "dev"])
         .assert()
         .stderr(predicate::str::contains("Detected kustomize"));
 }
@@ -175,7 +175,7 @@ fn test_ansible_detection() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["check", &project_path, "dev"])
+        .args(["check", &project_path, "dev"])
         .assert()
         .stderr(predicate::str::contains("Detected ansible"));
 }
@@ -187,7 +187,7 @@ fn test_invalid_environment() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["check", &project_path, "invalid-env"])
+        .args(["check", &project_path, "invalid-env"])
         .assert()
         .failure()
         .stderr(predicate::str::contains("Invalid env"));
@@ -200,7 +200,7 @@ fn test_valid_environment_accepted() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["check", &project_path, "dev"])
+        .args(["check", &project_path, "dev"])
         .assert()
         .stderr(predicate::str::contains("Invalid env").not());
 }
@@ -209,7 +209,7 @@ fn test_valid_environment_accepted() {
 fn test_nonexistent_path() {
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["check", "/nonexistent/path/12345", "dev"])
+        .args(["check", "/nonexistent/path/12345", "dev"])
         .assert()
         .failure()
         .stderr(
@@ -227,7 +227,7 @@ fn test_terraform_check_command_generation() {
     // but we can check that the correct command is generated
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["check", &project_path, "dev"])
+        .args(["check", &project_path, "dev"])
         .output()
         .unwrap();
 
@@ -242,7 +242,7 @@ fn test_helm_template_command_generation() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["template", &project_path, "dev"])
+        .args(["template", &project_path, "dev"])
         .output()
         .unwrap();
 
@@ -257,7 +257,7 @@ fn test_kustomize_template_command_generation() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["template", &project_path, "dev"])
+        .args(["template", &project_path, "dev"])
         .output()
         .unwrap();
 
@@ -272,7 +272,7 @@ fn test_ansible_check_command_generation() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["check", &project_path, "dev"])
+        .args(["check", &project_path, "dev"])
         .output()
         .unwrap();
 
@@ -287,7 +287,7 @@ fn test_verbose_flag() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["--verbose", "check", &project_path, "dev"])
+        .args(["--verbose", "check", &project_path, "dev"])
         .assert()
         .stderr(predicate::str::contains("Detected terraform"));
 }
@@ -300,14 +300,14 @@ fn test_multiple_environments_available() {
     // Test with dev
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["check", &project_path, "dev"])
+        .args(["check", &project_path, "dev"])
         .assert()
         .stderr(predicate::str::contains("Invalid env").not());
 
     // Test with prod
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["check", &project_path, "prod"])
+        .args(["check", &project_path, "prod"])
         .assert()
         .stderr(predicate::str::contains("Invalid env").not());
 }
@@ -319,7 +319,7 @@ fn test_error_message_shows_valid_environments() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["check", &project_path, "staging"])
+        .args(["check", &project_path, "staging"])
         .output()
         .unwrap();
 
@@ -339,7 +339,7 @@ fn test_invalid_subcommand() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["invalid-action", &project_path, "dev"])
+        .args(["invalid-action", &project_path, "dev"])
         .assert()
         .failure()
         .stderr(predicate::str::contains("error"));

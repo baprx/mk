@@ -71,7 +71,7 @@ fn test_terraform_duplicate_creates_files() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["duplicate", &project_path, "dev", "staging"])
+        .args(["duplicate", &project_path, "dev", "staging"])
         .assert()
         .success();
 
@@ -97,7 +97,7 @@ fn test_terraform_duplicate_replaces_content() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["duplicate", &project_path, "dev", "staging"])
+        .args(["duplicate", &project_path, "dev", "staging"])
         .assert()
         .success();
 
@@ -134,7 +134,7 @@ fn test_helm_duplicate_creates_directory() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["duplicate", &project_path, "dev", "staging"])
+        .args(["duplicate", &project_path, "dev", "staging"])
         .assert()
         .success();
 
@@ -154,7 +154,7 @@ fn test_helm_duplicate_replaces_content() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["duplicate", &project_path, "dev", "staging"])
+        .args(["duplicate", &project_path, "dev", "staging"])
         .assert()
         .success();
 
@@ -187,7 +187,7 @@ fn test_duplicate_with_nonexistent_source_env() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["duplicate", &project_path, "nonexistent", "staging"])
+        .args(["duplicate", &project_path, "nonexistent", "staging"])
         .assert()
         .failure()
         .stderr(predicate::str::contains("Invalid env"));
@@ -202,14 +202,14 @@ fn test_duplicate_target_env_already_exists() {
     // First duplicate
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["duplicate", &project_path, "dev", "staging"])
+        .args(["duplicate", &project_path, "dev", "staging"])
         .assert()
         .success();
 
     // Try to duplicate again to same target
     let result = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["duplicate", &project_path, "dev", "staging"])
+        .args(["duplicate", &project_path, "dev", "staging"])
         .output()
         .unwrap();
 
@@ -231,7 +231,7 @@ fn test_duplicate_preserves_source_files() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["duplicate", &project_path, "dev", "staging"])
+        .args(["duplicate", &project_path, "dev", "staging"])
         .assert()
         .success();
 
@@ -271,7 +271,7 @@ fn test_duplicate_case_sensitive_replacement() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["duplicate", project_path, "dev", "staging"])
+        .args(["duplicate", project_path, "dev", "staging"])
         .assert()
         .success();
 
