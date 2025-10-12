@@ -4,9 +4,23 @@ on:
   push:
     branches:
       - main
+    paths:
+      - .github/workflows/**
+      - Cargo.lock
+      - Cargo.toml
+      - mise.toml
+      - src/**
+      - tests/**
   pull_request:
     branches:
       - main
+    paths:
+      - .github/workflows/**
+      - Cargo.lock
+      - Cargo.toml
+      - mise.toml
+      - src/**
+      - tests/**
 
 permissions:
   pull-requests: write
@@ -75,6 +89,7 @@ jobs:
 
       - name: Comment PR with results
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        if: github.event_name == 'pull_request'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
