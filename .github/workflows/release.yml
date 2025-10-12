@@ -117,13 +117,13 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           cd target/${{ matrix.target }}/release
-          mv mk mk-0.5.4-${{ matrix.target }}
+          mv mk mk-${GITHUB_REF_NAME#v}-${{ matrix.target }}
 
       - name: Prepare binary (Windows)
         if: runner.os == 'Windows'
         run: |
           cd target/${{ matrix.target }}/release
-          mv mk.exe mk-0.5.4-${{ matrix.target }}.exe
+          mv mk.exe mk-${GITHUB_REF_NAME#v}-${{ matrix.target }}.exe
         shell: bash
 
       - name: Upload Release Artifact
@@ -131,8 +131,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ "${{ runner.os }}" == "Windows" ]; then
-            gh release upload v0.5.4 ./target/${{ matrix.target }}/release/mk-0.5.4-${{ matrix.target }}.exe
+            gh release upload ${{ github.ref_name }} ./target/${{ matrix.target }}/release/mk-${GITHUB_REF_NAME#v}-${{ matrix.target }}
           else
-            gh release upload v0.5.4 ./target/${{ matrix.target }}/release/mk-0.5.4-${{ matrix.target }}
+            gh release upload ${{ github.ref_name }} ./target/${{ matrix.target }}/release/mk-${GITHUB_REF_NAME#v}-${{ matrix.target }}
           fi
         shell: bash
