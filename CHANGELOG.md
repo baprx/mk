@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.7](https://github.com/baprx/mk/compare/v0.5.6...v0.5.7) (2025-10-12)
+
+
+### Bug Fixes
+
+* **ci:** oh. oh. ([9148e23](https://github.com/baprx/mk/commit/9148e237725a384a0679ebb1999b49c271f36b5b))
+
 ## [0.5.6](https://github.com/baprx/mk/compare/v0.5.5...v0.5.6) (2025-10-12)
 
 
