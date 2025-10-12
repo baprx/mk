@@ -1,4 +1,4 @@
-name: Release Please
+name: Build and publish release artifacts
 
 on:
   push:
