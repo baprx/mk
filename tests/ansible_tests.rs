@@ -26,7 +26,7 @@ fn create_ansible_project(temp_dir: &TempDir, env: &str) -> String {
 
     fs::write(
         inventories_dir.join(format!("{}.yml", env)),
-        format!("all:\\n  hosts:\\n    server1:\\n      ansible_host: 10.0.0.1\\n"),
+        "all:\\n  hosts:\\n    server1:\\n      ansible_host: 10.0.0.1\\n",
     )
     .unwrap();
 
@@ -49,7 +49,7 @@ fn test_ansible_list_command() {
     Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_path)
-        .args(&["list", ".", "dev"])
+        .args(["list", ".", "dev"])
         .assert()
         .success();
 }
@@ -70,7 +70,7 @@ fn test_ansible_list_with_environment() {
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_path)
-        .args(&["list", ".", "dev"])
+        .args(["list", ".", "dev"])
         .output()
         .unwrap();
 
@@ -85,7 +85,7 @@ fn test_ansible_list_invalid_environment() {
     Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_path)
-        .args(&["list", ".", "nonexistent"])
+        .args(["list", ".", "nonexistent"])
         .assert()
         .failure()
         .stderr(predicate::str::contains("not found").or(predicate::str::contains("Invalid")));
@@ -99,7 +99,7 @@ fn test_ansible_list_shows_command() {
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_path)
-        .args(&["list", ".", "dev"])
+        .args(["list", ".", "dev"])
         .output()
         .unwrap();
 
@@ -118,7 +118,7 @@ fn test_ansible_apply_command() {
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_path)
-        .args(&["apply", ".", "dev"])
+        .args(["apply", ".", "dev"])
         .output()
         .unwrap();
 
@@ -139,7 +139,7 @@ fn test_ansible_apply_with_check_option() {
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_path)
-        .args(&["apply", ".", "dev", "--", "--check"])
+        .args(["apply", ".", "dev", "--", "--check"])
         .output()
         .unwrap();
 
@@ -161,7 +161,7 @@ fn test_ansible_not_in_ansible_directory() {
     Command::cargo_bin("mk")
         .unwrap()
         .current_dir(temp_dir.path())
-        .args(&["list", ".", "dev"])
+        .args(["list", ".", "dev"])
         .assert()
         .failure()
         .stderr(
@@ -190,7 +190,7 @@ fn test_ansible_multiple_environments_available() {
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_path)
-        .args(&["list", ".", "dev"])
+        .args(["list", ".", "dev"])
         .output()
         .unwrap();
 

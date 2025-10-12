@@ -49,7 +49,7 @@ auto_approve = false
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_path)
-        .args(&["plan", ".", "dev"])
+        .args(["plan", ".", "dev"])
         .output()
         .unwrap();
 
@@ -93,7 +93,7 @@ backend_vars = "custom-backend"
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_dir)
-        .args(&["plan", ".", "dev"])
+        .args(["plan", ".", "dev"])
         .output()
         .unwrap();
 
@@ -118,7 +118,7 @@ terraform = "apply"
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_path)
-        .args(&["plan", ".", "dev"])
+        .args(["plan", ".", "dev"])
         .output()
         .unwrap();
 
@@ -147,7 +147,7 @@ auto_approve = false
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_path)
-        .args(&["terraform", "--env", "dev"])
+        .args(["terraform", "--env", "dev"])
         .output()
         .unwrap();
 
@@ -173,7 +173,7 @@ exclude = ["vendor", "node_modules"]
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_path)
-        .args(&["terraform", "--env", "dev"])
+        .args(["terraform", "--env", "dev"])
         .output()
         .unwrap();
 
@@ -211,7 +211,7 @@ fn test_no_config_file_uses_defaults() {
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_dir)
-        .args(&["terraform", "--env", "dev"])
+        .args(["terraform", "--env", "dev"])
         .output()
         .unwrap();
 
@@ -236,7 +236,7 @@ verbose = true
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_path)
-        .args(&["plan", ".", "dev"])
+        .args(["plan", ".", "dev"])
         .output()
         .unwrap();
 
@@ -278,7 +278,7 @@ namespace = "custom-namespace"
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_dir)
-        .args(&["helm", "--env", "dev"])
+        .args(["helm", "--env", "dev"])
         .output()
         .unwrap();
 
@@ -330,7 +330,7 @@ vault_password_file = ".vault-pass"
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_dir)
-        .args(&["ansible", "list", "--env", "dev"])
+        .args(["ansible", "list", "--env", "dev"])
         .output()
         .unwrap();
 
@@ -355,7 +355,7 @@ verbose = true
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_path)
-        .args(&["terraform", "--env", "dev"])
+        .args(["terraform", "--env", "dev"])
         .output()
         .unwrap();
 
@@ -399,7 +399,7 @@ terraform = "plan"
     let output = Command::cargo_bin("mk")
         .unwrap()
         .current_dir(&project_dir)
-        .args(&["terraform", "--env", "dev"])
+        .args(["terraform", "--env", "dev"])
         .output()
         .unwrap();
 

@@ -186,7 +186,7 @@ resource "google_compute_network" "vpc" {
 
     // Run bump command
     let mut cmd = Command::cargo_bin("mk").unwrap();
-    cmd.current_dir(&project_dir)
+    cmd.current_dir(project_dir)
         .arg("bump")
         .arg(".")
         .arg("--verbose");

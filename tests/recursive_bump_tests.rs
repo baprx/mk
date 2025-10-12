@@ -58,7 +58,7 @@ fn test_recursive_bump_finds_single_project() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
+        .args(["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
         .output()
         .unwrap();
 
@@ -79,7 +79,7 @@ fn test_recursive_bump_finds_multiple_projects() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
+        .args(["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
         .output()
         .unwrap();
 
@@ -100,7 +100,7 @@ fn test_recursive_bump_mixed_technologies() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
+        .args(["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
         .output()
         .unwrap();
 
@@ -125,7 +125,7 @@ fn test_recursive_bump_nested_projects() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
+        .args(["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
         .output()
         .unwrap();
 
@@ -143,7 +143,7 @@ fn test_recursive_bump_with_include_prereleases() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&[
+        .args([
             "bump",
             temp_dir.path().to_str().unwrap(),
             "--recursive",
@@ -166,7 +166,7 @@ fn test_recursive_bump_empty_directory() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
+        .args(["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
         .output()
         .unwrap();
 
@@ -188,7 +188,7 @@ fn test_recursive_bump_shows_project_count() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
+        .args(["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
         .output()
         .unwrap();
 
@@ -220,7 +220,7 @@ fn test_recursive_bump_max_depth_default() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
+        .args(["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
         .output()
         .unwrap();
 
@@ -236,7 +236,7 @@ fn test_recursive_bump_max_depth_default() {
 fn test_recursive_bump_nonexistent_directory() {
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["bump", "/nonexistent/path/12345", "--recursive"])
+        .args(["bump", "/nonexistent/path/12345", "--recursive"])
         .output()
         .unwrap();
 
@@ -259,7 +259,7 @@ fn test_recursive_bump_with_verbose() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&[
+        .args([
             "bump",
             temp_dir.path().to_str().unwrap(),
             "--recursive",
@@ -286,7 +286,7 @@ fn test_recursive_bump_same_dependency_cached() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&[
+        .args([
             "bump",
             temp_dir.path().to_str().unwrap(),
             "--recursive",
@@ -315,7 +315,7 @@ fn test_recursive_bump_reports_up_to_date() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
+        .args(["bump", temp_dir.path().to_str().unwrap(), "--recursive"])
         .output()
         .unwrap();
 

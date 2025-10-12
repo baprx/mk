@@ -113,7 +113,7 @@ fn test_drift_command_requires_base_path() {
 fn test_drift_nonexistent_directory() {
     Command::cargo_bin("mk")
         .unwrap()
-        .args(&["drift", "/nonexistent/path/12345"])
+        .args(["drift", "/nonexistent/path/12345"])
         .assert()
         .failure();
 }
@@ -124,7 +124,7 @@ fn test_drift_empty_directory() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["drift", temp_dir.path().to_str().unwrap()])
+        .args(["drift", temp_dir.path().to_str().unwrap()])
         .output()
         .unwrap();
 
@@ -143,7 +143,7 @@ fn test_drift_detects_terraform_project() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["drift", temp_dir.path().to_str().unwrap()])
+        .args(["drift", temp_dir.path().to_str().unwrap()])
         .output()
         .unwrap();
 
@@ -161,7 +161,7 @@ fn test_drift_detects_helm_project() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["drift", temp_dir.path().to_str().unwrap()])
+        .args(["drift", temp_dir.path().to_str().unwrap()])
         .output()
         .unwrap();
 
@@ -180,7 +180,7 @@ fn test_drift_with_tech_filter_terraform() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&[
+        .args([
             "drift",
             temp_dir.path().to_str().unwrap(),
             "--tech",
@@ -202,7 +202,7 @@ fn test_drift_with_tech_filter_helm() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["drift", temp_dir.path().to_str().unwrap(), "--tech", "helm"])
+        .args(["drift", temp_dir.path().to_str().unwrap(), "--tech", "helm"])
         .output()
         .unwrap();
 
@@ -237,7 +237,7 @@ fn test_drift_with_env_filter() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["drift", temp_dir.path().to_str().unwrap(), "--env", "dev"])
+        .args(["drift", temp_dir.path().to_str().unwrap(), "--env", "dev"])
         .output()
         .unwrap();
 
@@ -274,7 +274,7 @@ fn test_drift_with_max_depth() {
     // Test with max-depth that's too shallow
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&[
+        .args([
             "drift",
             temp_dir.path().to_str().unwrap(),
             "--max-depth",
@@ -293,7 +293,7 @@ fn test_drift_with_max_depth() {
     // Test with max-depth that's deep enough
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&[
+        .args([
             "drift",
             temp_dir.path().to_str().unwrap(),
             "--max-depth",
@@ -316,7 +316,7 @@ fn test_drift_verbose_flag() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["drift", temp_dir.path().to_str().unwrap(), "--verbose"])
+        .args(["drift", temp_dir.path().to_str().unwrap(), "--verbose"])
         .output()
         .unwrap();
 
@@ -332,7 +332,7 @@ fn test_drift_capture_flag_creates_log_dir() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["drift", temp_dir.path().to_str().unwrap(), "--capture"])
+        .args(["drift", temp_dir.path().to_str().unwrap(), "--capture"])
         .output()
         .unwrap();
 
@@ -367,7 +367,7 @@ fn test_drift_multiple_projects() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .args(&["drift", temp_dir.path().to_str().unwrap()])
+        .args(["drift", temp_dir.path().to_str().unwrap()])
         .output()
         .unwrap();
 
