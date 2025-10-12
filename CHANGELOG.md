@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/baprx/mk/compare/v0.5.1...v0.5.2) (2025-10-12)
+
+
+### Bug Fixes
+
+* install gcc-aarch64-linux-gnu for cross-compilation ([483ea9c](https://github.com/baprx/mk/commit/483ea9c31f6662ce343ff88e96c30f7cdc33943a))
+
 ## [0.5.1](https://github.com/baprx/mk/compare/v0.5.0...v0.5.1) (2025-10-12)
 
 
