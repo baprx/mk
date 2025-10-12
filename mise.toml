@@ -1,0 +1,24 @@
+[tools]
+ansible = "12.0.0"
+"ubi:nextest-rs/nextest" = { version = "cargo-nextest-0.9.105", exe = "cargo-nextest" }
+"ubi:xd009642/tarpaulin" = { version = "0.33.0", exe = "cargo-tarpaulin" }
+"ubi:rustsec/rustsec" = { version = "cargo-audit/v0.21.2", exe = "cargo-audit" }
+helm = "3.19.0"
+helmfile = "1.1.7"
+kustomize = "5.7.1"
+pre-commit = "4.3.0"
+rust = "stable"
+tfswitch = "1.7.0"
+watchexec = "2.3.2"
+
+[tasks.build]
+run = "cargo build --release --locked"
+
+[tasks.install-local]
+run = "cargo install --path . --force"
+
+[tasks.test]
+run = "cargo clippy -- -D warnings && cargo nextest run"
+
+[tasks.coverage]
+run = "cargo tarpaulin --out Html"
