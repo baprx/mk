@@ -5,6 +5,9 @@ on:
     tags:
       - v\d+.\d+.\d+
 
+permissions:
+  contents: write
+
 jobs:
   build-release-artifacts:
     name: Build release artifacts
