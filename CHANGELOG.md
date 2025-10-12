@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.4](https://github.com/baprx/mk/compare/v0.5.3...v0.5.4) (2025-10-12)
+
+
+### Bug Fixes
+
+* **build:** add linker configuration for aarch64 target ([2afc2af](https://github.com/baprx/mk/commit/2afc2af962a6e48e5f2d07fa62672f5cf602ac8f))
+
 ## [0.5.3](https://github.com/baprx/mk/compare/v0.5.2...v0.5.3) (2025-10-12)
 
 
