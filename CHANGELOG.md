@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.3](https://github.com/baprx/mk/compare/v0.5.2...v0.5.3) (2025-10-12)
+
+
+### Bug Fixes
+
+* **ci:** install required tools to run the test suites ([368a104](https://github.com/baprx/mk/commit/368a1049453ae2ebfc294774da72e1fd1dbdcd8f))
+
 ## [0.5.2](https://github.com/baprx/mk/compare/v0.5.1...v0.5.2) (2025-10-12)
 
 
