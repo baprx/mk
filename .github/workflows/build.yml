@@ -1,15 +1,6 @@
 name: Build and Test
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - Cargo.lock
-      - Cargo.toml
-      - mise.toml
-      - src/**
-      - tests/**
   pull_request:
     branches:
       - main
@@ -87,7 +78,6 @@ jobs:
 
       - name: Comment PR with results
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
-        if: github.event_name == 'pull_request'
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -137,7 +127,6 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
