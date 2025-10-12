@@ -1,15 +1,14 @@
 name: Build and publish release artifacts
 
 on:
-  pull_request:
-    branches:
-      - main
+  push:
+    tags:
+      - v\d+.\d+.\d+
 
 permissions:
   contents: write
 
 jobs:
-  # Run checks once before building
   check:
     name: Check
     runs-on: ubuntu-latest
