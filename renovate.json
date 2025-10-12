@@ -1,0 +1,21 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    ":configMigration",
+    ":prConcurrentLimit10",
+    ":prHourlyLimitNone",
+    ":rebaseStalePrs",
+    "config:best-practices",
+    "config:recommended",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
+    }
+  ],
+  "pre-commit": {
+    "enabled": true
+  }
+}
