@@ -133,7 +133,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ "${{ runner.os }}" == "Windows" ]; then
-            gh release upload ${{ github.ref_name }} ./target/${{ matrix.target }}/release/mk-${GITHUB_REF_NAME#v}-${{ matrix.target }}
+            gh release upload ${{ github.ref_name }} ./target/${{ matrix.target }}/release/mk-${GITHUB_REF_NAME#v}-${{ matrix.target }}.exe
           else
             gh release upload ${{ github.ref_name }} ./target/${{ matrix.target }}/release/mk-${GITHUB_REF_NAME#v}-${{ matrix.target }}
           fi
