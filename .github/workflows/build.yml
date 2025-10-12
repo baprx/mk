@@ -51,14 +51,10 @@ jobs:
 
       - name: Run tests with nextest
         id: nextest
-        run: |
-          cargo nextest run --profile ci --message-format libtest-json-plus | tee nextest-results.json
         env:
           NEXTEST_EXPERIMENTAL_LIBTEST_JSON: "1"
-
-      - name: Parse test results
-        id: parse_tests
         run: |
+          cargo nextest run --profile ci --message-format libtest-json-plus | tee nextest-results.json
           # Parse libtest-json-plus output for test results using jq
           # Sum up results from all suite completion events
           if [ -f nextest-results.json ]; then
