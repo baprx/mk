@@ -1,12 +1,7 @@
 use super::Action;
 use anyhow::Result;
 
-pub fn get_command(
-    action: &Action,
-    project_path: &str,
-    environment: &str,
-    options: &[String],
-) -> Result<String> {
+pub fn get_command(action: &Action, environment: &str, options: &[String]) -> Result<String> {
     let options_str = options.join(" ");
     let opts = if options_str.is_empty() {
         String::new()
@@ -17,26 +12,23 @@ pub fn get_command(
     let cmd = match action {
         Action::Apply => {
             format!(
-                "kustomize build {}/overlays/{} | kubectl apply --validate=false -f -{}",
-                project_path, environment, opts
+                "kustomize build overlays/{} | kubectl apply{} -f -",
+                environment, opts
             )
         }
         Action::Check | Action::Diff => {
             format!(
-                "kustomize build {}/overlays/{} | kubectl diff -f - || test $? -eq 1",
-                project_path, environment
+                "kustomize build overlays/{} | kubectl diff{} -f - || test $? -eq 1",
+                environment, opts
             )
         }
         Action::Template => {
-            format!(
-                "kustomize build {}/overlays/{}{}",
-                project_path, environment, opts
-            )
+            format!("kustomize build overlays/{}{}", environment, opts)
         }
         Action::Delete | Action::Destroy | Action::Uninstall => {
             format!(
-                "kustomize build {}/overlays/{} | kubectl delete -f -{}",
-                project_path, environment, opts
+                "kustomize build overlays/{} | kubectl delete{} -f -",
+                environment, opts
             )
         }
         _ => {

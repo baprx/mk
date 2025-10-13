@@ -26,9 +26,8 @@ module "vpc" {
 
     // Run bump command in dry-run mode (list only, don't update)
     let mut cmd = Command::cargo_bin("mk").unwrap();
-    cmd.current_dir(&terraform_dir)
-        .arg("bump")
-        .arg(".")
+    cmd.arg("bump")
+        .arg(terraform_dir.to_str().unwrap())
         .arg("--verbose");
 
     // Note: This will actually try to fetch versions from the registry
@@ -87,9 +86,8 @@ terraform {
 
     // Run bump command from parent directory
     let mut cmd = Command::cargo_bin("mk").unwrap();
-    cmd.current_dir(&project_dir)
-        .arg("bump")
-        .arg(".")
+    cmd.arg("bump")
+        .arg(project_dir.to_str().unwrap())
         .arg("--verbose");
 
     let output = cmd.output().unwrap();
@@ -139,9 +137,8 @@ dependencies:
 
     // Run bump command - the directory has values.yaml so it should be detected as Helm
     let mut cmd = Command::cargo_bin("mk").unwrap();
-    cmd.current_dir(temp_dir.path())
-        .arg("bump")
-        .arg(".")
+    cmd.arg("bump")
+        .arg(temp_dir.path().to_str().unwrap())
         .arg("--verbose");
 
     let output = cmd.output().unwrap();
@@ -186,9 +183,8 @@ resource "google_compute_network" "vpc" {
 
     // Run bump command
     let mut cmd = Command::cargo_bin("mk").unwrap();
-    cmd.current_dir(project_dir)
-        .arg("bump")
-        .arg(".")
+    cmd.arg("bump")
+        .arg(project_dir.to_str().unwrap())
         .arg("--verbose");
 
     let output = cmd.output().unwrap();
@@ -238,9 +234,8 @@ module "bastion" {
 
     // Run bump command from parent - it should detect the terraform subdirectory
     let mut cmd = Command::cargo_bin("mk").unwrap();
-    cmd.current_dir(temp_dir.path())
-        .arg("bump")
-        .arg(".")
+    cmd.arg("bump")
+        .arg(temp_dir.path().to_str().unwrap())
         .arg("--verbose");
 
     let output = cmd.output().unwrap();
@@ -276,9 +271,8 @@ module "vpc" {
 
     // Run bump command
     let mut cmd = Command::cargo_bin("mk").unwrap();
-    cmd.current_dir(&project_dir)
-        .arg("bump")
-        .arg(".")
+    cmd.arg("bump")
+        .arg(project_dir.to_str().unwrap())
         .arg("--verbose");
 
     let output = cmd.output().unwrap();

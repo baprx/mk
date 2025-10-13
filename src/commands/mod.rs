@@ -44,7 +44,7 @@ pub fn get_command(
             Ok(cmd.map(|c| vec![c]).unwrap_or_else(Vec::new))
         }
         Technology::Kustomize => {
-            let cmd = kustomize::get_command(action, project_path, environment, options)?;
+            let cmd = kustomize::get_command(action, environment, options)?;
             Ok(vec![cmd])
         }
         Technology::Ansible => {

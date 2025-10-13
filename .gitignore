@@ -1,3 +1,2 @@
-target/
 nextest-results.json
-tarpaulin-report.*
+target/

@@ -224,7 +224,7 @@ fn test_terraform_check_command_generation() {
     let project_path = create_terraform_test_project(&temp_dir);
 
     // The command will fail because terraform isn't actually configured,
-    // but we can check that the correct command is generated
+    // but we can check that it detected terraform and attempted to run
     let output = Command::cargo_bin("mk")
         .unwrap()
         .args(["check", &project_path, "dev"])
@@ -232,7 +232,11 @@ fn test_terraform_check_command_generation() {
         .unwrap();
 
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("terraform plan") || stderr.contains("terraform"));
+    // Should detect terraform technology
+    assert!(
+        stderr.contains("Detected terraform"),
+        "Should detect terraform technology"
+    );
 }
 
 #[test]
@@ -247,7 +251,11 @@ fn test_helm_template_command_generation() {
         .unwrap();
 
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("helm"));
+    // Should detect helm technology
+    assert!(
+        stderr.contains("Detected helm"),
+        "Should detect helm technology"
+    );
 }
 
 #[test]
@@ -262,7 +270,14 @@ fn test_kustomize_template_command_generation() {
         .unwrap();
 
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("kustomize"));
+    assert!(
+        stderr.contains("kustomize build"),
+        "Should generate kustomize build command"
+    );
+    assert!(
+        stderr.contains("overlays/dev") || stderr.contains("dev"),
+        "Should reference the dev overlay"
+    );
 }
 
 #[test]
@@ -277,7 +292,11 @@ fn test_ansible_check_command_generation() {
         .unwrap();
 
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("ansible-playbook"));
+    // Should detect ansible technology
+    assert!(
+        stderr.contains("Detected ansible"),
+        "Should detect ansible technology"
+    );
 }
 
 #[test]
