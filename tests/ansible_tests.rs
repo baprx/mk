@@ -199,3 +199,111 @@ fn test_ansible_multiple_environments_available() {
         "Should work with multiple environments when one is specified"
     );
 }
+
+#[test]
+fn test_ansible_diff_command() {
+    let temp_dir = TempDir::new().unwrap();
+    let project_path = create_ansible_project(&temp_dir, "dev");
+
+    let output = Command::cargo_bin("mk")
+        .unwrap()
+        .current_dir(&project_path)
+        .args(["diff", ".", "dev"])
+        .output()
+        .unwrap();
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    // Should generate an ansible-playbook command with -DC flags (--diff --check)
+    assert!(
+        stdout.contains("ansible-playbook") || stderr.contains("ansible-playbook"),
+        "Should reference ansible-playbook"
+    );
+    assert!(
+        stdout.contains("-DC")
+            || stderr.contains("-DC")
+            || (stdout.contains("--diff") && stdout.contains("--check"))
+            || (stderr.contains("--diff") && stderr.contains("--check")),
+        "Should include -DC or --diff --check flags"
+    );
+}
+
+#[test]
+fn test_ansible_diff_with_options() {
+    let temp_dir = TempDir::new().unwrap();
+    let project_path = create_ansible_project(&temp_dir, "dev");
+
+    let output = Command::cargo_bin("mk")
+        .unwrap()
+        .current_dir(&project_path)
+        .args(["diff", ".", "dev", "--", "--limit", "webservers"])
+        .output()
+        .unwrap();
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    // Should generate ansible-playbook command with additional options
+    assert!(
+        stdout.contains("ansible-playbook") || stderr.contains("ansible-playbook"),
+        "Should reference ansible-playbook"
+    );
+}
+
+#[test]
+fn test_ansible_deps_command() {
+    let temp_dir = TempDir::new().unwrap();
+    let project_path = create_ansible_project(&temp_dir, "dev");
+
+    // Create requirements.yml for dependencies
+    let ansible_dir = temp_dir.path().join("ansible");
+    fs::write(
+        ansible_dir.join("requirements.yml"),
+        "---\ncollections:\n  - name: community.general\n    version: \">=1.0.0\"\n",
+    )
+    .unwrap();
+
+    let output = Command::cargo_bin("mk")
+        .unwrap()
+        .current_dir(&project_path)
+        .args(["deps", ".", "dev"])
+        .output()
+        .unwrap();
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    // Should reference ansible-galaxy
+    assert!(
+        stdout.contains("ansible-galaxy") || stderr.contains("ansible-galaxy"),
+        "Should reference ansible-galaxy for deps"
+    );
+}
+
+#[test]
+fn test_ansible_deps_without_requirements_file() {
+    let temp_dir = TempDir::new().unwrap();
+    let project_path = create_ansible_project(&temp_dir, "dev");
+
+    // Don't create requirements.yml
+    let output = Command::cargo_bin("mk")
+        .unwrap()
+        .current_dir(&project_path)
+        .args(["deps", ".", "dev"])
+        .output()
+        .unwrap();
+
+    // Should either succeed (no-op) or reference ansible-galaxy
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    // Command should execute or provide appropriate feedback
+    assert!(
+        output.status.success()
+            || stdout.contains("ansible-galaxy")
+            || stderr.contains("ansible-galaxy")
+            || stderr.contains("requirements"),
+        "Should handle missing requirements file gracefully"
+    );
+}

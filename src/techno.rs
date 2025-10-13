@@ -35,6 +35,8 @@ impl Technology {
             (Technology::Terraform, Action::Delete) => true,
             (Technology::Terraform, Action::Output { .. }) => true,
             (Technology::Terraform, Action::Duplicate { .. }) => true,
+            (Technology::Terraform, Action::Unlock { .. }) => true,
+            (Technology::Terraform, Action::Show) => true,
 
             // Helm actions
             (Technology::Helm, Action::Apply) => true,
