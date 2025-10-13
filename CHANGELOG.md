@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.5.9](https://github.com/baprx/mk/compare/v0.5.8...v0.5.9) (2025-10-13)
+
+
+### Bug Fixes
+
+* add missing nextest config ([92e3b90](https://github.com/baprx/mk/commit/92e3b90c4252f28d033eada3ee4893cb6e779532))
+* add missing nextest config ([15c9340](https://github.com/baprx/mk/commit/15c9340050fd6321cb65d3d74b9b44370743e9c3))
+* **build:** add linker configuration for aarch64 target ([2afc2af](https://github.com/baprx/mk/commit/2afc2af962a6e48e5f2d07fa62672f5cf602ac8f))
+* **ci:** add permissions for writing contents in release workflow ([12136c3](https://github.com/baprx/mk/commit/12136c332fc47379f70889b990bda0d78d086600))
+* **ci:** install required tools to run the test suites ([368a104](https://github.com/baprx/mk/commit/368a1049453ae2ebfc294774da72e1fd1dbdcd8f))
+* **ci:** oh. ([8173d20](https://github.com/baprx/mk/commit/8173d205f4fa47f604362a1fb35fed33db72a266))
+* **ci:** oh. oh. ([9148e23](https://github.com/baprx/mk/commit/9148e237725a384a0679ebb1999b49c271f36b5b))
+* **ci:** use cross-rs/cross for cross-compilation ([#12](https://github.com/baprx/mk/issues/12)) ([36c8561](https://github.com/baprx/mk/commit/36c8561f54f2f726490abf1ff2ec7077f78a65c2))
+* enabled vendored openssl feature to fix build on aarch64-unknown-linux-gnu target ([4eac435](https://github.com/baprx/mk/commit/4eac43511a18436a7f45d34d075b0dd6efd369c5))
+* install gcc-aarch64-linux-gnu for cross-compilation ([483ea9c](https://github.com/baprx/mk/commit/483ea9c31f6662ce343ff88e96c30f7cdc33943a))
+* **kustomize:** remove project path from generated commands since we use the working_dir during execution ([6a90546](https://github.com/baprx/mk/commit/6a905464bc91a9e55c6c2cf8e1b1cae916f979b3))
+* streamline test execution by removing redundant parsing step ([052baed](https://github.com/baprx/mk/commit/052baede3d216a677fc49e8772f08cfec8e4b701))
+* update workflow triggers for push and pull request events ([7e9c965](https://github.com/baprx/mk/commit/7e9c9656c01b662717055c5725479e1dd1a2a426))
+
 ## [0.5.8](https://github.com/baprx/mk/compare/v0.5.7...v0.5.8) (2025-10-13)
 
 
