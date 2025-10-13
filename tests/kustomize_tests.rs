@@ -8,7 +8,7 @@ use tempfile::TempDir;
 
 /// Helper to create a kustomize project
 /// Returns the path to the kustomize directory
-fn create_kustomize_project(temp_dir: &TempDir, env: &str) -> String {
+fn create_kustomize_project(temp_dir: &TempDir, envs: &[&str]) -> String {
     // Create kustomize project directory
     let kustomize_dir = temp_dir.path().join("my-kustomize");
     fs::create_dir(&kustomize_dir).unwrap();
@@ -20,14 +20,24 @@ fn create_kustomize_project(temp_dir: &TempDir, env: &str) -> String {
     // Create base kustomization.yaml
     fs::write(
         base_dir.join("kustomization.yaml"),
-        "apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\nresources:\n  - deployment.yaml\n",
+        r#"apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deployment.yaml
+"#,
     )
     .unwrap();
 
     // Create base deployment
     fs::write(
         base_dir.join("deployment.yaml"),
-        "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: my-app\nspec:\n  replicas: 1\n",
+        r#"apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: 1
+"#,
     )
     .unwrap();
 
@@ -35,18 +45,20 @@ fn create_kustomize_project(temp_dir: &TempDir, env: &str) -> String {
     let overlays_dir = kustomize_dir.join("overlays");
     fs::create_dir(&overlays_dir).unwrap();
 
-    // Create environment overlay
-    let env_dir = overlays_dir.join(env);
-    fs::create_dir(&env_dir).unwrap();
+    // Create environment overlays
+    for env in envs {
+        let env_dir = overlays_dir.join(env);
+        fs::create_dir(&env_dir).unwrap();
 
-    fs::write(
-        env_dir.join("kustomization.yaml"),
-        format!(
-            "apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\nnamespace: {}\nbases:\n  - ../../base\n",
-            env
-        ),
-    )
-    .unwrap();
+        fs::write(
+            env_dir.join("kustomization.yaml"),
+            format!(
+                "apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\nnamespace: {}\nresources:\n  - ../../base\n",
+                env
+            ),
+        )
+        .unwrap();
+    }
 
     kustomize_dir.to_str().unwrap().to_string()
 }
@@ -54,19 +66,17 @@ fn create_kustomize_project(temp_dir: &TempDir, env: &str) -> String {
 #[test]
 fn test_kustomize_apply_command() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_kustomize_project(&temp_dir, "dev");
+    let project_path = create_kustomize_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["apply", ".", "dev"])
+        .args(["apply", &project_path, "dev"])
         .output()
         .unwrap();
 
     let stderr = String::from_utf8_lossy(&output.stderr);
-    // Should reference kustomize build and kubectl apply
     assert!(
-        stderr.contains("kustomize") || stderr.contains("kubectl"),
+        stderr.contains("kustomize build overlays/dev | kubectl apply"),
         "Should reference kustomize or kubectl command"
     );
 }
@@ -74,18 +84,17 @@ fn test_kustomize_apply_command() {
 #[test]
 fn test_kustomize_apply_with_options() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_kustomize_project(&temp_dir, "dev");
+    let project_path = create_kustomize_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["apply", ".", "dev", "--", "--dry-run=client"])
+        .args(["apply", &project_path, "dev", "--", "--dry-run=client"])
         .output()
         .unwrap();
 
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("kustomize") || stderr.contains("kubectl"),
+        stderr.contains("kustomize build overlays/dev | kubectl apply --dry-run=client"),
         "Should generate kustomize/kubectl command with options"
     );
 }
@@ -93,19 +102,18 @@ fn test_kustomize_apply_with_options() {
 #[test]
 fn test_kustomize_diff_command() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_kustomize_project(&temp_dir, "dev");
+    let project_path = create_kustomize_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["diff", ".", "dev"])
+        .args(["diff", &project_path, "dev"])
         .output()
         .unwrap();
 
     let stderr = String::from_utf8_lossy(&output.stderr);
     // Should reference kustomize build and kubectl diff
     assert!(
-        stderr.contains("kustomize") || stderr.contains("kubectl") || stderr.contains("diff"),
+        stderr.contains("kustomize build overlays/dev | kubectl diff"),
         "Should reference kustomize/kubectl diff command"
     );
 }
@@ -113,18 +121,17 @@ fn test_kustomize_diff_command() {
 #[test]
 fn test_kustomize_diff_with_options() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_kustomize_project(&temp_dir, "dev");
+    let project_path = create_kustomize_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["diff", ".", "dev", "--", "--server-side"])
+        .args(["diff", &project_path, "dev", "--", "--server-side"])
         .output()
         .unwrap();
 
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stderr.contains("kustomize") || stderr.contains("kubectl"),
+        stderr.contains("kustomize build overlays/dev") && stderr.contains("--server-side"),
         "Should generate kustomize/kubectl command with options"
     );
 }
@@ -132,12 +139,11 @@ fn test_kustomize_diff_with_options() {
 #[test]
 fn test_kustomize_invalid_environment() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_kustomize_project(&temp_dir, "dev");
+    let project_path = create_kustomize_project(&temp_dir, &["dev"]);
 
     Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["apply", ".", "nonexistent"])
+        .args(["apply", &project_path, "nonexistent"])
         .assert()
         .failure()
         .stderr(predicate::str::contains("Invalid env"));
@@ -146,47 +152,23 @@ fn test_kustomize_invalid_environment() {
 #[test]
 fn test_kustomize_multiple_environments() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_kustomize_project(&temp_dir, "dev");
-
-    // Create prod environment
-    let kustomize_dir = temp_dir.path().join("my-kustomize");
-    let overlays_dir = kustomize_dir.join("overlays");
-    let prod_dir = overlays_dir.join("prod");
-    fs::create_dir(&prod_dir).unwrap();
-
-    fs::write(
-        prod_dir.join("kustomization.yaml"),
-        "apiVersion: kustomize.config.k8s.io/v1beta1\nkind: Kustomization\nnamespace: prod\nbases:\n  - ../../base\n",
-    )
-    .unwrap();
+    let project_path = create_kustomize_project(&temp_dir, &["dev", "prod"]);
 
     // Both environments should work
     let output_dev = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["diff", ".", "dev"])
+        .args(["template", &project_path, "dev"])
         .output()
         .unwrap();
 
     let output_prod = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["diff", ".", "prod"])
+        .args(["template", &project_path, "prod"])
         .output()
         .unwrap();
 
-    assert!(
-        output_dev.status.success()
-            || String::from_utf8_lossy(&output_dev.stderr).contains("kustomize")
-            || String::from_utf8_lossy(&output_dev.stderr).contains("kubectl"),
-        "Dev environment should work"
-    );
-    assert!(
-        output_prod.status.success()
-            || String::from_utf8_lossy(&output_prod.stderr).contains("kustomize")
-            || String::from_utf8_lossy(&output_prod.stderr).contains("kubectl"),
-        "Prod environment should work"
-    );
+    assert!(output_dev.status.success(), "Dev environment should work");
+    assert!(output_prod.status.success(), "Prod environment should work");
 }
 
 #[test]
@@ -195,8 +177,7 @@ fn test_kustomize_not_in_kustomize_directory() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(temp_dir.path())
-        .args(["apply", ".", "dev"])
+        .args(["apply", temp_dir.path().to_str().unwrap(), "dev"])
         .assert()
         .failure()
         .stderr(
@@ -209,12 +190,11 @@ fn test_kustomize_not_in_kustomize_directory() {
 #[test]
 fn test_kustomize_detection() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_kustomize_project(&temp_dir, "dev");
+    let project_path = create_kustomize_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["apply", ".", "dev"])
+        .args(["apply", &project_path, "dev"])
         .output()
         .unwrap();
 

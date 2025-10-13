@@ -8,7 +8,7 @@ use tempfile::TempDir;
 
 /// Helper to create an ansible project
 /// Returns the path to the parent directory (not the ansible subdirectory)
-fn create_ansible_project(temp_dir: &TempDir, env: &str) -> String {
+fn create_ansible_project(temp_dir: &TempDir, envs: &[&str]) -> String {
     // Create ansible subdirectory
     let ansible_dir = temp_dir.path().join("ansible");
     fs::create_dir(&ansible_dir).unwrap();
@@ -16,7 +16,9 @@ fn create_ansible_project(temp_dir: &TempDir, env: &str) -> String {
     // Create ansible.cfg
     fs::write(
         ansible_dir.join("ansible.cfg"),
-        "[defaults]\\ninventory = inventories\\n",
+        r#"[defaults]
+inventory = inventories
+"#,
     )
     .unwrap();
 
@@ -24,16 +26,28 @@ fn create_ansible_project(temp_dir: &TempDir, env: &str) -> String {
     let inventories_dir = ansible_dir.join("inventories");
     fs::create_dir(&inventories_dir).unwrap();
 
-    fs::write(
-        inventories_dir.join(format!("{}.yml", env)),
-        "all:\\n  hosts:\\n    server1:\\n      ansible_host: 10.0.0.1\\n",
-    )
-    .unwrap();
+    for env in envs {
+        fs::write(
+            inventories_dir.join(format!("{}.yml", env)),
+            r#"all:
+  hosts:
+    server1:
+      ansible_host: 10.0.0.1
+"#,
+        )
+        .unwrap();
+    }
 
     // Create a simple playbook
     fs::write(
         ansible_dir.join("playbook.yml"),
-        "---\\n- hosts: all\\n  tasks:\\n    - name: Test\\n      debug:\\n        msg: test\\n",
+        r#"---
+- hosts: all
+  tasks:
+    - name: Test
+      debug:
+        msg: test
+"#,
     )
     .unwrap();
 
@@ -44,12 +58,11 @@ fn create_ansible_project(temp_dir: &TempDir, env: &str) -> String {
 #[test]
 fn test_ansible_list_command() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_ansible_project(&temp_dir, "dev");
+    let project_path = create_ansible_project(&temp_dir, &["dev"]);
 
     Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["list", ".", "dev"])
+        .args(["list", &project_path, "dev"])
         .assert()
         .success();
 }
@@ -57,20 +70,11 @@ fn test_ansible_list_command() {
 #[test]
 fn test_ansible_list_with_environment() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_ansible_project(&temp_dir, "dev");
-
-    // Create prod environment too
-    let inventories_dir = temp_dir.path().join("ansible").join("inventories");
-    fs::write(
-        inventories_dir.join("prod.yml"),
-        "all:\\n  hosts:\\n    server2:\\n      ansible_host: 10.0.0.2\\n",
-    )
-    .unwrap();
+    let project_path = create_ansible_project(&temp_dir, &["dev", "prod"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["list", ".", "dev"])
+        .args(["list", &project_path, "dev"])
         .output()
         .unwrap();
 
@@ -80,12 +84,11 @@ fn test_ansible_list_with_environment() {
 #[test]
 fn test_ansible_list_invalid_environment() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_ansible_project(&temp_dir, "dev");
+    let project_path = create_ansible_project(&temp_dir, &["dev"]);
 
     Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["list", ".", "nonexistent"])
+        .args(["list", &project_path, "nonexistent"])
         .assert()
         .failure()
         .stderr(predicate::str::contains("not found").or(predicate::str::contains("Invalid")));
@@ -94,12 +97,11 @@ fn test_ansible_list_invalid_environment() {
 #[test]
 fn test_ansible_list_shows_command() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_ansible_project(&temp_dir, "dev");
+    let project_path = create_ansible_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["list", ".", "dev"])
+        .args(["list", &project_path, "dev"])
         .output()
         .unwrap();
 
@@ -113,44 +115,51 @@ fn test_ansible_list_shows_command() {
 #[test]
 fn test_ansible_apply_command() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_ansible_project(&temp_dir, "dev");
+    let project_path = create_ansible_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["apply", ".", "dev"])
+        .args(["apply", &project_path, "dev"])
         .output()
         .unwrap();
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
-    // Should generate an ansible-playbook command
+    // Should generate an ansible-playbook command with proper structure
     assert!(
-        stdout.contains("ansible-playbook") || stderr.contains("ansible-playbook"),
-        "Should reference ansible-playbook"
+        stderr.contains("ansible-playbook"),
+        "Should generate ansible-playbook command in stderr"
+    );
+    assert!(
+        stderr.contains("playbook.yml"),
+        "Should reference the playbook file"
+    );
+    assert!(
+        stderr.contains("-i") || stderr.contains("--inventory"),
+        "Should include inventory flag"
     );
 }
 
 #[test]
 fn test_ansible_apply_with_check_option() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_ansible_project(&temp_dir, "dev");
+    let project_path = create_ansible_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["apply", ".", "dev", "--", "--check"])
+        .args(["apply", &project_path, "dev", "--", "--check"])
         .output()
         .unwrap();
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
-    // Should either show the command with --check or succeed (dry-run mode)
-    // The tool generates commands, so check if --check appears in output
+    // Should show the command with --check flag passed through
     assert!(
-        stdout.contains("--check") || stderr.contains("--check") || output.status.success(),
-        "Apply with --check should either display or execute successfully"
+        stderr.contains("ansible-playbook"),
+        "Should generate ansible-playbook command"
+    );
+    assert!(
+        stderr.contains("--check"),
+        "Should include the --check flag in the command"
     );
 }
 
@@ -160,8 +169,7 @@ fn test_ansible_not_in_ansible_directory() {
 
     Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(temp_dir.path())
-        .args(["list", ".", "dev"])
+        .args(["list", temp_dir.path().to_str().unwrap(), "dev"])
         .assert()
         .failure()
         .stderr(
@@ -174,23 +182,12 @@ fn test_ansible_not_in_ansible_directory() {
 #[test]
 fn test_ansible_multiple_environments_available() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_ansible_project(&temp_dir, "dev");
-
-    // Create multiple environments
-    let inventories_dir = temp_dir.path().join("ansible").join("inventories");
-    for env in &["staging", "prod"] {
-        fs::write(
-            inventories_dir.join(format!("{}.yml", env)),
-            "all:\\n  hosts:\\n    server:\\n      ansible_host: 10.0.0.1\\n",
-        )
-        .unwrap();
-    }
+    let project_path = create_ansible_project(&temp_dir, &["dev", "staging", "prod"]);
 
     // With valid environment, should succeed
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["list", ".", "dev"])
+        .args(["list", &project_path, "dev"])
         .output()
         .unwrap();
 
@@ -203,58 +200,55 @@ fn test_ansible_multiple_environments_available() {
 #[test]
 fn test_ansible_diff_command() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_ansible_project(&temp_dir, "dev");
+    let project_path = create_ansible_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["diff", ".", "dev"])
+        .args(["diff", &project_path, "dev"])
         .output()
         .unwrap();
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
-    // Should generate an ansible-playbook command with -DC flags (--diff --check)
+    // Should generate an ansible-playbook command with diff and check flags
     assert!(
-        stdout.contains("ansible-playbook") || stderr.contains("ansible-playbook"),
-        "Should reference ansible-playbook"
+        stderr.contains("ansible-playbook"),
+        "Should generate ansible-playbook command"
     );
     assert!(
-        stdout.contains("-DC")
-            || stderr.contains("-DC")
-            || (stdout.contains("--diff") && stdout.contains("--check"))
-            || (stderr.contains("--diff") && stderr.contains("--check")),
-        "Should include -DC or --diff --check flags"
+        stderr.contains("-DC") || (stderr.contains("-D") && stderr.contains("-C")),
+        "Should include -DC or separate -D -C flags for diff and check"
     );
 }
 
 #[test]
 fn test_ansible_diff_with_options() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_ansible_project(&temp_dir, "dev");
+    let project_path = create_ansible_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["diff", ".", "dev", "--", "--limit", "webservers"])
+        .args(["diff", &project_path, "dev", "--", "--limit", "webservers"])
         .output()
         .unwrap();
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
-    // Should generate ansible-playbook command with additional options
+    // Should generate ansible-playbook command with additional options passed through
     assert!(
-        stdout.contains("ansible-playbook") || stderr.contains("ansible-playbook"),
-        "Should reference ansible-playbook"
+        stderr.contains("ansible-playbook"),
+        "Should generate ansible-playbook command"
+    );
+    assert!(
+        stderr.contains("--limit") && stderr.contains("webservers"),
+        "Should include the --limit webservers option"
     );
 }
 
 #[test]
 fn test_ansible_deps_command() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_ansible_project(&temp_dir, "dev");
+    let project_path = create_ansible_project(&temp_dir, &["dev"]);
 
     // Create requirements.yml for dependencies
     let ansible_dir = temp_dir.path().join("ansible");
@@ -266,31 +260,32 @@ fn test_ansible_deps_command() {
 
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["deps", ".", "dev"])
+        .args(["deps", &project_path, "dev"])
         .output()
         .unwrap();
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
-    // Should reference ansible-galaxy
+    // Should generate ansible-galaxy command with requirements file
     assert!(
-        stdout.contains("ansible-galaxy") || stderr.contains("ansible-galaxy"),
-        "Should reference ansible-galaxy for deps"
+        stderr.contains("ansible-galaxy"),
+        "Should generate ansible-galaxy command"
+    );
+    assert!(
+        stderr.contains("install") && stderr.contains("requirements"),
+        "Should include install command with requirements file"
     );
 }
 
 #[test]
 fn test_ansible_deps_without_requirements_file() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_ansible_project(&temp_dir, "dev");
+    let project_path = create_ansible_project(&temp_dir, &["dev"]);
 
     // Don't create requirements.yml
     let output = Command::cargo_bin("mk")
         .unwrap()
-        .current_dir(&project_path)
-        .args(["deps", ".", "dev"])
+        .args(["deps", &project_path, "dev"])
         .output()
         .unwrap();
 

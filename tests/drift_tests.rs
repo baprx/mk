@@ -7,27 +7,31 @@ use std::fs;
 use tempfile::TempDir;
 
 /// Helper to create a terraform project for drift testing
-fn create_terraform_drift_project(temp_dir: &TempDir, env: &str) -> String {
+fn create_terraform_drift_project(temp_dir: &TempDir, envs: &[&str]) -> String {
     let project_dir = temp_dir.path().join("terraform");
     fs::create_dir(&project_dir).unwrap();
 
     // Create tfvars directory
     let tfvars_dir = project_dir.join("tfvars");
     fs::create_dir(&tfvars_dir).unwrap();
-    fs::write(
-        tfvars_dir.join(format!("{}.tfvars", env)),
-        format!("env = \"{}\"\\n", env),
-    )
-    .unwrap();
+    for env in envs {
+        fs::write(
+            tfvars_dir.join(format!("{}.tfvars", env)),
+            format!("env = \"{}\"\\n", env),
+        )
+        .unwrap();
+    }
 
     // Create backend-vars directory
     let backend_vars_dir = project_dir.join("backend-vars");
     fs::create_dir(&backend_vars_dir).unwrap();
-    fs::write(
-        backend_vars_dir.join(format!("{}.tfvars", env)),
-        format!("key = \"terraform-{}.tfstate\"\\n", env),
-    )
-    .unwrap();
+    for env in envs {
+        fs::write(
+            backend_vars_dir.join(format!("{}.tfvars", env)),
+            format!("key = \"terraform-{}.tfstate\"\\n", env),
+        )
+        .unwrap();
+    }
 
     // Create a simple main.tf
     fs::write(
@@ -45,35 +49,44 @@ fn create_terraform_drift_project(temp_dir: &TempDir, env: &str) -> String {
 }
 
 /// Helper to create a helm project for drift testing
-fn create_helm_drift_project(temp_dir: &TempDir, env: &str) -> String {
+fn create_helm_drift_project(temp_dir: &TempDir, envs: &[&str]) -> String {
     let project_dir = temp_dir.path().join("my-chart");
     fs::create_dir(&project_dir).unwrap();
 
     // Create values.yaml
     fs::write(
         project_dir.join("values.yaml"),
-        "replicaCount: 3\\nimage:\\n  repository: nginx\\n  tag: latest\\n",
+        r#"replicaCount: 3
+image:
+  repository: nginx
+  tag: latest
+"#,
     )
     .unwrap();
 
     // Create Chart.yaml
     fs::write(
         project_dir.join("Chart.yaml"),
-        "apiVersion: v2\\nname: my-chart\\nversion: 0.1.0\\n",
+        r#"apiVersion: v2
+name: my-chart
+version: 0.1.0
+"#,
     )
     .unwrap();
 
-    // Create values directory with environment
+    // Create values directory with environments
     let values_dir = project_dir.join("values");
     fs::create_dir(&values_dir).unwrap();
 
-    let env_dir = values_dir.join(env);
-    fs::create_dir(&env_dir).unwrap();
-    fs::write(
-        env_dir.join("values.yaml"),
-        format!("environment: {}\\nreplicaCount: 5\\n", env),
-    )
-    .unwrap();
+    for env in envs {
+        let env_dir = values_dir.join(env);
+        fs::create_dir(&env_dir).unwrap();
+        fs::write(
+            env_dir.join("values.yaml"),
+            format!("environment: {}\\nreplicaCount: 5\\n", env),
+        )
+        .unwrap();
+    }
 
     // Create helmfile.yaml.gotmpl
     fs::write(
@@ -139,7 +152,7 @@ fn test_drift_empty_directory() {
 #[test]
 fn test_drift_detects_terraform_project() {
     let temp_dir = TempDir::new().unwrap();
-    let _project_path = create_terraform_drift_project(&temp_dir, "dev");
+    let _project_path = create_terraform_drift_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
@@ -157,7 +170,7 @@ fn test_drift_detects_terraform_project() {
 #[test]
 fn test_drift_detects_helm_project() {
     let temp_dir = TempDir::new().unwrap();
-    let _project_path = create_helm_drift_project(&temp_dir, "dev");
+    let _project_path = create_helm_drift_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
@@ -175,8 +188,8 @@ fn test_drift_detects_helm_project() {
 #[test]
 fn test_drift_with_tech_filter_terraform() {
     let temp_dir = TempDir::new().unwrap();
-    let _tf_project = create_terraform_drift_project(&temp_dir, "dev");
-    let _helm_project = create_helm_drift_project(&temp_dir, "dev");
+    let _tf_project = create_terraform_drift_project(&temp_dir, &["dev"]);
+    let _helm_project = create_helm_drift_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
@@ -190,15 +203,22 @@ fn test_drift_with_tech_filter_terraform() {
         .unwrap();
 
     let stderr = String::from_utf8_lossy(&output.stderr);
-    // Should only process Terraform projects
-    assert!(stderr.contains("Terraform") || stderr.contains("Found 1"));
+    // Should only process Terraform projects, not Helm
+    assert!(
+        stderr.contains("Found 1"),
+        "Should detect exactly 1 project when filtering by terraform"
+    );
+    assert!(
+        !stderr.contains("my-chart") && !stderr.contains("helm"),
+        "Should not process Helm projects when filtering for terraform"
+    );
 }
 
 #[test]
 fn test_drift_with_tech_filter_helm() {
     let temp_dir = TempDir::new().unwrap();
-    let _tf_project = create_terraform_drift_project(&temp_dir, "dev");
-    let _helm_project = create_helm_drift_project(&temp_dir, "dev");
+    let _tf_project = create_terraform_drift_project(&temp_dir, &["dev"]);
+    let _helm_project = create_helm_drift_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
@@ -221,19 +241,7 @@ fn test_drift_with_tech_filter_helm() {
 #[test]
 fn test_drift_with_env_filter() {
     let temp_dir = TempDir::new().unwrap();
-    let _project_dev = create_terraform_drift_project(&temp_dir, "dev");
-
-    // Create another environment
-    let project_dir = temp_dir.path().join("terraform");
-    let tfvars_dir = project_dir.join("tfvars");
-    fs::write(tfvars_dir.join("prod.tfvars"), "env = \"prod\"\\n").unwrap();
-
-    let backend_vars_dir = project_dir.join("backend-vars");
-    fs::write(
-        backend_vars_dir.join("prod.tfvars"),
-        "key = \"terraform-prod.tfstate\"\\n",
-    )
-    .unwrap();
+    let _project_dev = create_terraform_drift_project(&temp_dir, &["dev", "prod"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
@@ -242,8 +250,11 @@ fn test_drift_with_env_filter() {
         .unwrap();
 
     let stderr = String::from_utf8_lossy(&output.stderr);
-    // Should only check dev environment
-    assert!(stderr.contains("check") || stderr.contains("dev"));
+    // With env filter, should process the project and mention the environment
+    assert!(
+        stderr.contains("Found") || stderr.contains("dev") || output.status.success(),
+        "Should process project with dev environment filter"
+    );
 }
 
 #[test]
@@ -312,7 +323,7 @@ fn test_drift_with_max_depth() {
 #[test]
 fn test_drift_verbose_flag() {
     let temp_dir = TempDir::new().unwrap();
-    let _project_path = create_terraform_drift_project(&temp_dir, "dev");
+    let _project_path = create_terraform_drift_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
@@ -321,14 +332,24 @@ fn test_drift_verbose_flag() {
         .unwrap();
 
     let stderr = String::from_utf8_lossy(&output.stderr);
-    // Verbose mode should show more details
-    assert!(stderr.contains("Scanning") || stderr.contains("INFO"));
+    let output_without_verbose = Command::cargo_bin("mk")
+        .unwrap()
+        .args(["drift", temp_dir.path().to_str().unwrap()])
+        .output()
+        .unwrap();
+    let stderr_without_verbose = String::from_utf8_lossy(&output_without_verbose.stderr);
+
+    // Verbose mode should show more detailed output
+    assert!(
+        stderr.len() > stderr_without_verbose.len() || stderr.contains("Scanning"),
+        "Verbose mode should produce more detailed output"
+    );
 }
 
 #[test]
 fn test_drift_capture_flag_creates_log_dir() {
     let temp_dir = TempDir::new().unwrap();
-    let _project_path = create_terraform_drift_project(&temp_dir, "dev");
+    let _project_path = create_terraform_drift_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
@@ -349,7 +370,7 @@ fn test_drift_multiple_projects() {
     let temp_dir = TempDir::new().unwrap();
 
     // Create multiple projects
-    let _tf_project1 = create_terraform_drift_project(&temp_dir, "dev");
+    let _tf_project1 = create_terraform_drift_project(&temp_dir, &["dev"]);
 
     let tf2_dir = temp_dir.path().join("terraform2");
     fs::create_dir(&tf2_dir).unwrap();

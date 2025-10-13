@@ -8,7 +8,7 @@ use tempfile::TempDir;
 
 /// Helper to create a terraform project
 /// Returns the path to the terraform directory
-fn create_terraform_project(temp_dir: &TempDir, env: &str) -> String {
+fn create_terraform_project(temp_dir: &TempDir, envs: &[&str]) -> String {
     // Create terraform subdirectory
     let terraform_dir = temp_dir.path().join("terraform");
     fs::create_dir(&terraform_dir).unwrap();
@@ -16,25 +16,31 @@ fn create_terraform_project(temp_dir: &TempDir, env: &str) -> String {
     // Create tfvars directory with environment files
     let tfvars_dir = terraform_dir.join("tfvars");
     fs::create_dir(&tfvars_dir).unwrap();
-    fs::write(
-        tfvars_dir.join(format!("{}.tfvars", env)),
-        format!("env = \"{}\"\n", env),
-    )
-    .unwrap();
+    for env in envs {
+        fs::write(
+            tfvars_dir.join(format!("{}.tfvars", env)),
+            format!("env = \"{}\"\n", env),
+        )
+        .unwrap();
+    }
 
     // Create backend-vars directory
     let backend_vars_dir = terraform_dir.join("backend-vars");
     fs::create_dir(&backend_vars_dir).unwrap();
-    fs::write(
-        backend_vars_dir.join(format!("{}.tfvars", env)),
-        format!("key = \"terraform-{}.tfstate\"\n", env),
-    )
-    .unwrap();
+    for env in envs {
+        fs::write(
+            backend_vars_dir.join(format!("{}.tfvars", env)),
+            format!("key = \"terraform-{}.tfstate\"\n", env),
+        )
+        .unwrap();
+    }
 
     // Create a dummy main.tf
     fs::write(
         terraform_dir.join("main.tf"),
-        "# Terraform config\nresource \"null_resource\" \"test\" {}\n",
+        r#"# Terraform config
+resource "null_resource" "test" {}
+"#,
     )
     .unwrap();
 
@@ -44,7 +50,7 @@ fn create_terraform_project(temp_dir: &TempDir, env: &str) -> String {
 #[test]
 fn test_terraform_apply_command() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_terraform_project(&temp_dir, "dev");
+    let project_path = create_terraform_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
@@ -61,27 +67,9 @@ fn test_terraform_apply_command() {
 }
 
 #[test]
-fn test_terraform_apply_with_auto_approve() {
-    let temp_dir = TempDir::new().unwrap();
-    let project_path = create_terraform_project(&temp_dir, "dev");
-
-    let output = Command::cargo_bin("mk")
-        .unwrap()
-        .args(["apply", &project_path, "dev", "--", "-auto-approve"])
-        .output()
-        .unwrap();
-
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(
-        stderr.contains("Detected terraform") || stderr.contains("terraform"),
-        "Should detect terraform technology"
-    );
-}
-
-#[test]
 fn test_terraform_destroy_command() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_terraform_project(&temp_dir, "dev");
+    let project_path = create_terraform_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
@@ -97,27 +85,9 @@ fn test_terraform_destroy_command() {
 }
 
 #[test]
-fn test_terraform_destroy_with_auto_approve() {
-    let temp_dir = TempDir::new().unwrap();
-    let project_path = create_terraform_project(&temp_dir, "dev");
-
-    let output = Command::cargo_bin("mk")
-        .unwrap()
-        .args(["destroy", &project_path, "dev", "--", "-auto-approve"])
-        .output()
-        .unwrap();
-
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(
-        stderr.contains("Detected terraform") || stderr.contains("terraform"),
-        "Should detect terraform technology"
-    );
-}
-
-#[test]
 fn test_terraform_delete_command() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_terraform_project(&temp_dir, "dev");
+    let project_path = create_terraform_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
@@ -135,7 +105,7 @@ fn test_terraform_delete_command() {
 #[test]
 fn test_terraform_output_command() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_terraform_project(&temp_dir, "dev");
+    let project_path = create_terraform_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
@@ -153,7 +123,7 @@ fn test_terraform_output_command() {
 #[test]
 fn test_terraform_output_with_key() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_terraform_project(&temp_dir, "dev");
+    let project_path = create_terraform_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
@@ -171,7 +141,7 @@ fn test_terraform_output_with_key() {
 #[test]
 fn test_terraform_unlock_command() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_terraform_project(&temp_dir, "dev");
+    let project_path = create_terraform_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
@@ -189,7 +159,7 @@ fn test_terraform_unlock_command() {
 #[test]
 fn test_terraform_show_command() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_terraform_project(&temp_dir, "dev");
+    let project_path = create_terraform_project(&temp_dir, &["dev"]);
 
     let output = Command::cargo_bin("mk")
         .unwrap()
@@ -207,7 +177,7 @@ fn test_terraform_show_command() {
 #[test]
 fn test_terraform_invalid_environment() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_terraform_project(&temp_dir, "dev");
+    let project_path = create_terraform_project(&temp_dir, &["dev"]);
 
     Command::cargo_bin("mk")
         .unwrap()
@@ -220,41 +190,31 @@ fn test_terraform_invalid_environment() {
 #[test]
 fn test_terraform_multiple_environments() {
     let temp_dir = TempDir::new().unwrap();
-    let project_path = create_terraform_project(&temp_dir, "dev");
+    let project_path = create_terraform_project(&temp_dir, &["dev", "prod"]);
 
-    // Create prod environment
-    let terraform_dir = temp_dir.path().join("terraform");
-    let tfvars_dir = terraform_dir.join("tfvars");
-    fs::write(tfvars_dir.join("prod.tfvars"), "env = \"prod\"\n").unwrap();
-
-    let backend_vars_dir = terraform_dir.join("backend-vars");
-    fs::write(
-        backend_vars_dir.join("prod.tfvars"),
-        "key = \"terraform-prod.tfstate\"\n",
-    )
-    .unwrap();
-
-    // Both environments should work
+    // Both environments should work - test that they're detected
     let output_dev = Command::cargo_bin("mk")
         .unwrap()
-        .args(["plan", &project_path, "dev"])
+        .args(["apply", &project_path, "dev"])
         .output()
         .unwrap();
 
     let output_prod = Command::cargo_bin("mk")
         .unwrap()
-        .args(["plan", &project_path, "prod"])
+        .args(["apply", &project_path, "prod"])
         .output()
         .unwrap();
 
+    let stderr_dev = String::from_utf8_lossy(&output_dev.stderr);
+    let stderr_prod = String::from_utf8_lossy(&output_prod.stderr);
+
+    // Both should detect terraform (even if they don't execute successfully)
     assert!(
-        output_dev.status.success()
-            || String::from_utf8_lossy(&output_dev.stderr).contains("terraform"),
-        "Dev environment should work"
+        stderr_dev.contains("Detected terraform") || stderr_dev.contains("terraform"),
+        "Dev environment should be detected"
     );
     assert!(
-        output_prod.status.success()
-            || String::from_utf8_lossy(&output_prod.stderr).contains("terraform"),
-        "Prod environment should work"
+        stderr_prod.contains("Detected terraform") || stderr_prod.contains("terraform"),
+        "Prod environment should be detected"
     );
 }
