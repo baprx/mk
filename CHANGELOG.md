@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.9](https://github.com/baprx/mk/compare/v0.5.8...v0.5.9) (2025-10-13)
+
+
+### Bug Fixes
+
+* **ci:** use cross for all targets ([4269428](https://github.com/baprx/mk/commit/4269428f2c20538a38493acb7715d031c82d732c))
+
 ## [0.5.8](https://github.com/baprx/mk/compare/v0.5.7...v0.5.8) (2025-10-13)
 
 
