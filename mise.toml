@@ -7,7 +7,7 @@ helm = "3.19.0"
 helmfile = "1.1.7"
 kustomize = "5.7.1"
 pre-commit = "4.3.0"
-rust = "stable"
+rust = { version = "stable", components = "llvm-tools" }
 tfswitch = "1.7.0"
 watchexec = "2.3.2"
 
