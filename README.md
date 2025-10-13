@@ -63,8 +63,8 @@ mk diff <project-path> <environment> [options]
 
 # Destroy/delete infrastructure
 mk delete <project-path> <environment> [options]
-mk destroy <project-path> <environment> [options]  # Alias
-mk uninstall <project-path> <environment> [options]  # Alias
+mk destroy <project-path> <environment> [options] # Alias
+mk uninstall <project-path> <environment> [options] # Alias
 
 # Update dependencies
 mk deps <project-path> <environment> [options]
