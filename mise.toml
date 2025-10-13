@@ -1,8 +1,7 @@
 [tools]
-"ubi:cross-rs/cross" = "0.2.5"
 "ubi:nextest-rs/nextest" = { version = "cargo-nextest-0.9.105", exe = "cargo-nextest" }
 "ubi:rustsec/rustsec" = { version = "cargo-audit/v0.21.2", exe = "cargo-audit" }
-"ubi:taiki-e/cargo-llvm-cov" = "0.6.21"
+"ubi:taiki-e/cargo-llvm-cov" = "latest"
 ansible = "12.0.0"
 helm = "3.19.0"
 helmfile = "1.1.7"
