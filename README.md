@@ -56,7 +56,7 @@ mk apply <project-path> <environment> [options]
 
 # Plan/check changes
 mk check <project-path> <environment> [options]
-mk plan <project-path> <environment> [options]  # Alias for check
+mk plan <project-path> <environment> [options] # Alias for check
 
 # Show diff
 mk diff <project-path> <environment> [options]
