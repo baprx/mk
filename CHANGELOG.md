@@ -1,12 +1,5 @@
 # Changelog
 
-## [0.5.8](https://github.com/baprx/mk/compare/v0.5.7...v0.5.8) (2025-10-13)
-
-
-### Bug Fixes
-
-* **kustomize:** remove project path from generated commands since we use the working_dir during execution ([6a90546](https://github.com/baprx/mk/commit/6a905464bc91a9e55c6c2cf8e1b1cae916f979b3))
-
 ## [0.5.7](https://github.com/baprx/mk/compare/v0.5.6...v0.5.7) (2025-10-12)
 
 
