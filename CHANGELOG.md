@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.10](https://github.com/baprx/mk/compare/v0.5.9...v0.5.10) (2025-10-13)
+
+
+### Bug Fixes
+
+* **ci:** simplify cargo cache keys and enable cross for x86_64 linux ([0b0facd](https://github.com/baprx/mk/commit/0b0facdcc74fe1b284816ef113512a3faa8d6d53))
+
 ## [0.5.9](https://github.com/baprx/mk/compare/v0.5.8...v0.5.9) (2025-10-13)
 
 
