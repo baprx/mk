@@ -1,8 +1,8 @@
 [tools]
-ansible = "12.0.0"
 "ubi:nextest-rs/nextest" = { version = "cargo-nextest-0.9.105", exe = "cargo-nextest" }
-"ubi:xd009642/tarpaulin" = { version = "0.33.0", exe = "cargo-tarpaulin" }
 "ubi:rustsec/rustsec" = { version = "cargo-audit/v0.21.2", exe = "cargo-audit" }
+"ubi:taiki-e/cargo-llvm-cov" = "latest"
+ansible = "12.0.0"
 helm = "3.19.0"
 helmfile = "1.1.7"
 kustomize = "5.7.1"
@@ -21,4 +21,4 @@ run = "cargo install --path . --force"
 run = "cargo clippy --all-targets --all-features -- -D warnings && cargo nextest run"
 
 [tasks.coverage]
-run = "cargo tarpaulin --out Html"
+run = "cargo llvm-cov --all-features --workspace --open"
