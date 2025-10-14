@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.11](https://github.com/baprx/mk/compare/v0.5.10...v0.5.11) (2025-10-14)
+
+
+### Bug Fixes
+
+* **completions:** rewrite custom env/output completion logic which made bash completion broken ([f3e2a2a](https://github.com/baprx/mk/commit/f3e2a2a2a7f6534d4f2282f2c0dceeb9bc14f154))
+
 ## [0.5.10](https://github.com/baprx/mk/compare/v0.5.9...v0.5.10) (2025-10-13)
 
 
