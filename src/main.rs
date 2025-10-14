@@ -447,18 +447,18 @@ fn generate_completions(shell: Shell) {
 
             // Post-process the base completions to integrate custom completions
             let processed = base_completions
-    .replace(
-        ":environment -- Environment name:_default",
-        ":environment -- Environment name:_mk_environments",
-    )
-    .replace(
-        ":source_env -- Source environment:_default",
-        ":source_env -- Source environment:_mk_environments",
-    )
-    .replace(
-        ":key -- Output key name (omit or use --all to show all outputs):_default",
-        ":key -- Output key name (omit or use --all to show all outputs):_mk_output_keys",
-    );
+                .replace(
+                    ":environment -- Environment name:_default",
+                    ":environment -- Environment name:_mk_environments",
+                )
+                .replace(
+                    ":source_env -- Source environment:_default",
+                    ":source_env -- Source environment:_mk_environments",
+                )
+                .replace(
+                    ":key -- Output key name (omit or use --all to show all outputs):_default",
+                    ":key -- Output key name (omit or use --all to show all outputs):_mk_output_keys",
+                );
 
             print!("{}", processed);
         }
