@@ -439,68 +439,130 @@ fn generate_completions(shell: Shell) {
     match shell {
         Shell::Bash => {
             print!("{}", base_completions);
-            println!("\n# Custom completions for mk");
-            println!("_mk_complete_environment() {{");
-            println!("    local project_path=\"${{COMP_WORDS[2]}}\"");
-            println!("    if [[ -n \"$project_path\" ]]; then");
-            println!("        COMPREPLY=($(compgen -W \"$(mk complete-env \"$project_path\" 2>/dev/null)\" -- \"${{COMP_WORDS[COMP_CWORD]}}\"))");
-            println!("    fi");
-            println!("}}");
-            println!();
-            println!("_mk_complete_output_key() {{");
-            println!("    local project_path=\"${{COMP_WORDS[2]}}\"");
-            println!("    if [[ -n \"$project_path\" ]]; then");
-            println!("        COMPREPLY=($(compgen -W \"$(mk complete-output-key \"$project_path\" 2>/dev/null)\" -- \"${{COMP_WORDS[COMP_CWORD]}}\"))");
-            println!("    fi");
-            println!("}}");
-            println!();
-            println!("# Hook completions for commands that need them");
-            println!("complete -F _mk_complete_environment -o default mk 2>/dev/null || complete -F _mk_complete_environment mk");
+            print!("{}", get_bash_dynamic_completion_wrapper());
         }
         Shell::Zsh => {
             // For Zsh, inject the custom completion helpers
-            println!("#compdef mk");
-            println!();
-            println!("# Custom completion helpers");
-            println!("_mk_environments() {{");
-            println!("    # In zsh completion context, use line array to get the project path");
-            println!(
-                "    # The project path is the first positional argument after the subcommand"
-            );
-            println!("    local project_path=\"${{line[1]}}\"");
-            println!("    if [[ -n \"$project_path\" ]]; then");
-            println!("        local -a envs");
-            println!("        envs=($(mk complete-env \"$project_path\" 2>/dev/null))");
-            println!("        _describe 'environment' envs");
-            println!("    fi");
-            println!("}}");
-            println!();
-            println!("_mk_output_keys() {{");
-            println!("    local project_path=\"${{line[1]}}\"");
-            println!("    if [[ -n \"$project_path\" ]]; then");
-            println!("        local -a keys");
-            println!("        keys=($(mk complete-output-key \"$project_path\" 2>/dev/null))");
-            println!("        _describe 'output key' keys");
-            println!("    fi");
-            println!("}}");
-            println!();
+            print!("{}", get_zsh_dynamic_completion_helpers());
 
             // Post-process the base completions to integrate custom completions
             let processed = base_completions
-                .replace(
-                    ":environment -- Environment name:_default",
-                    ":environment -- Environment name:_mk_environments",
-                )
-                .replace(
-                    ":source_env -- Source environment:_default",
-                    ":source_env -- Source environment:_mk_environments",
-                )
-                .replace(
-                    ":key -- Output key name (omit or use --all to show all outputs):_default",
-                    ":key -- Output key name (omit or use --all to show all outputs):_mk_output_keys",
-                );
+    .replace(
+        ":environment -- Environment name:_default",
+        ":environment -- Environment name:_mk_environments",
+    )
+    .replace(
+        ":source_env -- Source environment:_default",
+        ":source_env -- Source environment:_mk_environments",
+    )
+    .replace(
+        ":key -- Output key name (omit or use --all to show all outputs):_default",
+        ":key -- Output key name (omit or use --all to show all outputs):_mk_output_keys",
+    );
 
             print!("{}", processed);
         }
     }
+}
+
+fn get_zsh_dynamic_completion_helpers() -> &'static str {
+    r#"#compdef mk
+
+# Custom completion helpers
+_mk_environments() {
+    # In zsh completion context, use line array to get the project path
+    # The project path is the first positional argument after the subcommand
+    local project_path="${line[1]}"
+    if [[ -n "$project_path" ]]; then
+        local -a envs
+        envs=($(mk complete-env "$project_path" 2>/dev/null))
+        _describe 'environment' envs
+    fi
+}
+
+_mk_output_keys() {
+    local project_path="${line[1]}"
+    if [[ -n "$project_path" ]]; then
+        local -a keys
+        keys=($(mk complete-output-key "$project_path" 2>/dev/null))
+        _describe 'output key' keys
+    fi
+}
+
+"#
+}
+
+fn get_bash_dynamic_completion_wrapper() -> &'static str {
+    r#"
+# Custom completion helpers for mk
+_mk_environments() {
+    # Extract the project path (first positional argument after subcommand)
+    local project_path="${COMP_WORDS[2]}"
+    if [[ -n "$project_path" ]]; then
+        local envs=$(mk complete-env "$project_path" 2>/dev/null)
+        COMPREPLY=($(compgen -W "$envs" -- "$cur"))
+    fi
+}
+
+_mk_output_keys() {
+    local project_path="${COMP_WORDS[2]}"
+    if [[ -n "$project_path" ]]; then
+        local keys=$(mk complete-output-key "$project_path" 2>/dev/null)
+        COMPREPLY=($(compgen -W "$keys" -- "$cur"))
+    fi
+}
+
+# Enhance the generated completion function
+_mk_dynamic() {
+    local cur prev words cword
+    _init_completion || return
+
+    # Determine which subcommand we're in
+    local cmd=""
+    local i
+    for i in "${COMP_WORDS[@]:1:COMP_CWORD-1}"; do
+        case "$i" in
+            apply|check|diff|plan|delete|destroy|uninstall|deps|template|output|list|show|unlock|duplicate)
+                cmd="$i"
+                break
+                ;;
+        esac
+    done
+
+    case "$cmd" in
+        apply|check|diff|plan|delete|destroy|uninstall|deps|template|list|show|unlock|duplicate)
+            # These commands take: PROJECT_PATH ENVIRONMENT [OPTIONS]...
+            if [[ ${COMP_CWORD} -eq 3 ]]; then
+                _mk_environments
+                return 0
+            fi
+            ;;
+        output)
+            # Output command takes: PROJECT_PATH ENVIRONMENT [KEY]
+            if [[ ${COMP_CWORD} -eq 3 ]]; then
+                _mk_environments
+                return 0
+            elif [[ ${COMP_CWORD} -eq 4 ]]; then
+                _mk_output_keys
+                return 0
+            fi
+            ;;
+    esac
+
+    # Fall back to base completion
+    return 1
+}
+
+# Wrap the generated completion function
+_mk_original=$(declare -f _mk)
+eval "${_mk_original/_mk/_mk_base}"
+
+_mk() {
+    # Try dynamic completion first
+    _mk_dynamic "$@" && return 0
+
+    # Fall back to base completion
+    _mk_base "$@"
+}
+"#
 }
