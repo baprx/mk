@@ -3,8 +3,8 @@ use colored::*;
 use dialoguer::Select;
 use std::path::Path;
 
-use crate::commands::Action;
 use crate::config::Config;
+use crate::Action;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Technology {

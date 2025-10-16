@@ -123,9 +123,10 @@ fn parse_terraform_modules(
                             .unwrap_or(1);
 
                         dependencies.push(Dependency {
-                            name: format!("{}/{}/{}", namespace, name, provider),
-                            current_version,
+                            name: module_name.to_string(),
+                            current_version: current_version.clone(),
                             latest_version,
+                            latest_app_version: None, // Terraform modules don't have appVersion
                             file_path: full_path.to_string(),
                             line_number,
                             dep_type: DependencyType::TerraformModule {

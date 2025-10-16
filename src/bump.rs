@@ -13,6 +13,7 @@ pub struct Dependency {
     pub name: String,
     pub current_version: String,
     pub latest_version: String,
+    pub latest_app_version: Option<String>,
     pub file_path: String,
     pub line_number: usize,
     pub dep_type: DependencyType,
@@ -90,16 +91,54 @@ fn run_bump_single(project_path: &str, verbose: bool, include_prereleases: bool)
         }
     }
 
+    // Separate successful dependencies from errors
+    let (successful_deps, error_deps): (Vec<_>, Vec<_>) = all_dependencies
+        .iter()
+        .partition(|dep| !dep.latest_version.starts_with("ERROR:"));
+
     if all_dependencies.is_empty() {
         eprintln!("{} No dependencies found", "INFO:".cyan());
         return Ok(());
     }
 
-    // Filter dependencies with updates available
-    let updates_available: Vec<_> = all_dependencies
+    // Report errors if any
+    if !error_deps.is_empty() {
+        eprintln!(
+            "{} {} dependencies found, {} with fetch errors",
+            "WARNING:".yellow(),
+            all_dependencies.len(),
+            error_deps.len()
+        );
+    }
+
+    // Filter dependencies with updates available (excluding errors)
+    let updates_available: Vec<_> = successful_deps
         .iter()
         .filter(|dep| dep.current_version != dep.latest_version)
+        .copied()
         .collect();
+
+    // Check if all dependencies failed
+    if !error_deps.is_empty() && successful_deps.is_empty() {
+        eprintln!(
+            "{} Could not verify any dependencies due to fetch errors",
+            "WARNING:".yellow()
+        );
+        eprintln!(
+            "  {} found but all failed to fetch",
+            if all_dependencies.len() == 1 {
+                "1 dependency".to_string()
+            } else {
+                format!("{} dependencies", all_dependencies.len())
+            }
+        );
+        eprintln!(
+            "  {}",
+            "Tip: Configure OCI authentication in ~/.config/mk/config.toml or use --verbose for details"
+                .dimmed()
+        );
+        return Ok(());
+    }
 
     if updates_available.is_empty() {
         eprintln!("{} All dependencies are up to date!", "SUCCESS:".green());
@@ -162,8 +201,14 @@ fn run_bump_single(project_path: &str, verbose: bool, include_prereleases: bool)
                 if verbose {
                     eprintln!("  Updating {} from repository: {}", dep.name, repository);
                 }
-                helm::update_helm_chart(&actual_path, &dep.name, &dep.latest_version)
-                    .context(format!("Failed to update {}", dep.name))?;
+                helm::update_helm_chart(
+                    &actual_path,
+                    &dep.name,
+                    &dep.current_version,
+                    &dep.latest_version,
+                    dep.latest_app_version.as_deref(),
+                )
+                .context(format!("Failed to update {}", dep.name))?;
                 eprintln!("  {} Updated {} in Chart.yaml", "✓".green(), dep.name);
             }
         }
@@ -306,7 +351,31 @@ fn run_bump_recursive(
                                 };
 
                             // Log dependency status
-                            if dep.current_version == latest_version {
+                            if latest_version.starts_with("ERROR:") {
+                                // Show error inline
+                                let error_msg = latest_version
+                                    .strip_prefix("ERROR: ")
+                                    .unwrap_or(&latest_version);
+                                // Truncate long error messages
+                                let short_error = if error_msg.len() > 60 {
+                                    format!("{}...", &error_msg[..57])
+                                } else {
+                                    error_msg.to_string()
+                                };
+                                eprintln!(
+                                    "  {} {} ({}:{}){} - {}",
+                                    "⚠".yellow(),
+                                    dep.name.cyan(),
+                                    dep.file_path.purple(),
+                                    dep.line_number,
+                                    if used_cache {
+                                        " [cached]".dimmed().to_string()
+                                    } else {
+                                        "".to_string()
+                                    },
+                                    short_error.dimmed()
+                                );
+                            } else if dep.current_version == latest_version {
                                 eprintln!(
                                     "  {} {} {} ({}:{}){} - already up to date",
                                     "✓".green(),
@@ -375,7 +444,31 @@ fn run_bump_recursive(
                                 };
 
                             // Log dependency status
-                            if dep.current_version == latest_version {
+                            if latest_version.starts_with("ERROR:") {
+                                // Show error inline
+                                let error_msg = latest_version
+                                    .strip_prefix("ERROR: ")
+                                    .unwrap_or(&latest_version);
+                                // Truncate long error messages
+                                let short_error = if error_msg.len() > 60 {
+                                    format!("{}...", &error_msg[..57])
+                                } else {
+                                    error_msg.to_string()
+                                };
+                                eprintln!(
+                                    "  {} {} ({}:{}){} - {}",
+                                    "⚠".yellow(),
+                                    dep.name.cyan(),
+                                    dep.file_path.purple(),
+                                    dep.line_number,
+                                    if used_cache {
+                                        " [cached]".dimmed().to_string()
+                                    } else {
+                                        "".to_string()
+                                    },
+                                    short_error.dimmed()
+                                );
+                            } else if dep.current_version == latest_version {
                                 eprintln!(
                                     "  {} {} {} ({}:{}){} - already up to date",
                                     "✓".green(),
@@ -430,11 +523,40 @@ fn run_bump_recursive(
         return Ok(());
     }
 
-    // Filter dependencies with updates available
+    // Separate successful dependencies from errors
+    let (successful_deps, error_deps): (Vec<&Dependency>, Vec<&Dependency>) = all_dependencies
+        .iter()
+        .partition(|dep| !dep.latest_version.starts_with("ERROR:"));
+
+    // Filter dependencies with updates available (excluding errors)
     let updates_available: Vec<_> = all_dependencies
         .iter()
-        .filter(|dep| dep.current_version != dep.latest_version)
+        .filter(|dep| {
+            !dep.latest_version.starts_with("ERROR:") && dep.current_version != dep.latest_version
+        })
         .collect();
+
+    // Check if all dependencies failed
+    if !error_deps.is_empty() && successful_deps.is_empty() {
+        eprintln!(
+            "{} Could not verify any dependencies due to fetch errors",
+            "WARNING:".yellow()
+        );
+        eprintln!(
+            "  {} found but all failed to fetch",
+            if all_dependencies.len() == 1 {
+                "1 dependency".to_string()
+            } else {
+                format!("{} dependencies", all_dependencies.len())
+            }
+        );
+        eprintln!(
+            "  {}",
+            "Tip: Configure OCI authentication in ~/.config/mk/config.toml or use --verbose for details"
+                .dimmed()
+        );
+        return Ok(());
+    }
 
     if updates_available.is_empty() {
         eprintln!("{} All dependencies are up to date!", "SUCCESS:".green());
@@ -453,9 +575,17 @@ fn run_bump_recursive(
         .map(|dep| dep.display_name())
         .collect();
 
+    // Pre-select if only one dependency is available
+    let defaults = if updates_available.len() == 1 {
+        vec![true]
+    } else {
+        vec![false; updates_available.len()]
+    };
+
     let selections = MultiSelect::new()
         .with_prompt("Select dependencies to update (Space to select, Enter to confirm)")
         .items(&items)
+        .defaults(&defaults)
         .interact()
         .context("Failed to get user selection")?;
 
@@ -494,8 +624,14 @@ fn run_bump_recursive(
                     .parent()
                     .and_then(|p| p.to_str())
                     .unwrap_or(&dep.file_path);
-                helm::update_helm_chart(project_path, &dep.name, &dep.latest_version)
-                    .context(format!("Failed to update {}", dep.name))?;
+                helm::update_helm_chart(
+                    project_path,
+                    &dep.name,
+                    &dep.current_version,
+                    &dep.latest_version,
+                    dep.latest_app_version.as_deref(),
+                )
+                .context(format!("Failed to update {}", dep.name))?;
                 eprintln!("  {} Updated {} in Chart.yaml", "✓".green(), dep.name);
             }
         }

@@ -2,6 +2,7 @@ use crate::techno::Technology;
 use anyhow::Result;
 use etcetera::BaseStrategy;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 
@@ -19,6 +20,16 @@ pub struct Config {
 pub struct BumpConfig {
     #[serde(default = "default_max_depth")]
     pub max_depth: usize,
+    #[serde(default)]
+    pub oci_registries: HashMap<String, OciRegistryAuth>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OciRegistryAuth {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub token: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub command: Option<String>,
 }
 
 fn default_max_depth() -> usize {
@@ -29,6 +40,7 @@ impl Default for BumpConfig {
     fn default() -> Self {
         Self {
             max_depth: default_max_depth(),
+            oci_registries: HashMap::new(),
         }
     }
 }
@@ -128,6 +140,21 @@ impl Config {
 [bump]
 # Maximum directory depth for recursive scanning (default: 5)
 max_depth = 5
+
+# OCI registry authentication for Helm charts
+# Configure authentication tokens or commands for OCI registries
+#
+# You can specify either a static token or a command that returns a token
+#
+# Examples:
+# [bump.oci_registries."ghcr.io"]
+# token = "ghp_your_github_token_here"
+#
+# [bump.oci_registries."123456789.dkr.ecr.us-east-1.amazonaws.com"]
+# command = "aws ecr get-login-password --region us-east-1"
+#
+# [bump.oci_registries."registry.gitlab.com"]
+# token = "glpat-your_gitlab_token"
 
 # Kubernetes context validation (Helm/Kustomize only)
 [context]
