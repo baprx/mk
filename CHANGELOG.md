@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.6.0](https://github.com/baprx/mk/compare/v0.5.11...v0.6.0) (2025-10-16)
+
+
+### Features
+
+* **bump:** add support for OCI registries ([d108083](https://github.com/baprx/mk/commit/d1080834b5dee122716f23be81c62dcb378ae2f1))
+* **bump:** bump .appVersion and .version if they were set correctly ([2706515](https://github.com/baprx/mk/commit/27065152fa0f85cb05291b19bbe8c198d0548146))
+* improve error handling and reporting for dependency fetch failures ([914ad23](https://github.com/baprx/mk/commit/914ad23d8c57d3fc2960207625cb39844f3c67e6))
+
+
+### Bug Fixes
+
+* **bump:** normalize docker.io to registry-1.docker.io ([34b8431](https://github.com/baprx/mk/commit/34b843151193a4cdeceee305977d0c139fb8cec6))
+* **bump:** simplify oci repository path logic ([67d9c5e](https://github.com/baprx/mk/commit/67d9c5ef0c145d5f9355b03a29af8401049dd630))
+
 ## [0.5.11](https://github.com/baprx/mk/compare/v0.5.10...v0.5.11) (2025-10-14)
 
 
