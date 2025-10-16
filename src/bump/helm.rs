@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use colored::*;
 use std::fs;
 use std::path::Path;
 use yaml_rust2::{Yaml, YamlEmitter, YamlLoader};
@@ -78,6 +79,32 @@ pub fn scan_helm_charts(
                 );
             }
 
+            // Skip local file:// dependencies - they don't need remote fetching
+            if repository.starts_with("file://") {
+                if verbose {
+                    eprintln!("  Skipping local file dependency: {}", repository);
+                }
+                // Add as dependency with current version (no update available)
+                let line_number = content
+                    .lines()
+                    .enumerate()
+                    .find(|(_, line)| line.contains(&format!("name: {}", name)))
+                    .map(|(i, _)| i + 1)
+                    .unwrap_or(1);
+
+                dependencies.push(Dependency {
+                    name: name.to_string(),
+                    current_version: version.to_string(),
+                    latest_version: version.to_string(), // Same as current for local
+                    file_path: chart_yaml_path.to_string_lossy().to_string(),
+                    line_number,
+                    dep_type: DependencyType::HelmChart {
+                        repository: repository.to_string(),
+                    },
+                });
+                continue;
+            }
+
             // Fetch latest version - handle both OCI and HTTP registries
             let fetch_result = if repository.starts_with("oci://") {
                 if verbose {
@@ -94,16 +121,16 @@ pub fn scan_helm_charts(
                 registry::fetch_helm_chart_version(repository, name, verbose, include_prereleases)
             };
 
+            // Find line number (approximate)
+            let line_number = content
+                .lines()
+                .enumerate()
+                .find(|(_, line)| line.contains(&format!("name: {}", name)))
+                .map(|(i, _)| i + 1)
+                .unwrap_or(1);
+
             match fetch_result {
                 Ok(latest_version) => {
-                    // Find line number (approximate)
-                    let line_number = content
-                        .lines()
-                        .enumerate()
-                        .find(|(_, line)| line.contains(&format!("name: {}", name)))
-                        .map(|(i, _)| i + 1)
-                        .unwrap_or(1);
-
                     dependencies.push(Dependency {
                         name: name.to_string(),
                         current_version: version.to_string(),
@@ -116,9 +143,27 @@ pub fn scan_helm_charts(
                     });
                 }
                 Err(e) => {
+                    // Only log errors in verbose mode to avoid cluttering output
                     if verbose {
-                        eprintln!("  Warning: Failed to fetch version for {}: {}", name, e);
+                        eprintln!(
+                            "  {} Failed to fetch version for {}: {}",
+                            "✗".bright_red(),
+                            name.bright_cyan(),
+                            e.to_string().yellow()
+                        );
                     }
+
+                    // Add dependency with ERROR marker so it can be filtered out later
+                    dependencies.push(Dependency {
+                        name: name.to_string(),
+                        current_version: version.to_string(),
+                        latest_version: format!("ERROR: {}", e),
+                        file_path: chart_yaml_path.to_string_lossy().to_string(),
+                        line_number,
+                        dep_type: DependencyType::HelmChart {
+                            repository: repository.to_string(),
+                        },
+                    });
                 }
             }
         }

@@ -288,17 +288,25 @@ fn fetch_anonymous_oci_token(
     repository: &str,
     verbose: bool,
 ) -> Result<Option<String>> {
-    // Try common token endpoint patterns
-    let token_urls = vec![
-        format!(
-            "https://{}/token?scope=repository:{}:pull",
-            registry, repository
-        ),
-        format!(
-            "https://{}/v2/token?scope=repository:{}:pull",
-            registry, repository
-        ),
-    ];
+    // Docker Hub uses a different authentication endpoint
+    let token_urls = if registry == "registry-1.docker.io" {
+        vec![format!(
+            "https://auth.docker.io/token?service=registry.docker.io&scope=repository:{}:pull",
+            repository
+        )]
+    } else {
+        // Try common token endpoint patterns for other registries
+        vec![
+            format!(
+                "https://{}/token?scope=repository:{}:pull",
+                registry, repository
+            ),
+            format!(
+                "https://{}/v2/token?scope=repository:{}:pull",
+                registry, repository
+            ),
+        ]
+    };
 
     for token_url in token_urls {
         if verbose {
@@ -348,11 +356,26 @@ pub fn fetch_helm_chart_version_oci(
         );
     }
 
-    // Get authentication token
-    let token = get_oci_token(&registry, &repository, config, verbose)?;
+    // For Docker Hub and some ghcr.io repos, the chart name needs to be appended to the repository path
+    // Docker Hub format: registry-1.docker.io/v2/bitnamicharts/mariadb/tags/list
+    // ghcr.io format (varies):
+    //   - ghcr.io/v2/grafana/helm-charts/grafana-operator/tags/list (needs chart name)
+    //   - ghcr.io/v2/prometheus-community/charts/prometheus/tags/list (already has chart name)
+    let full_repository = if registry == "registry-1.docker.io" {
+        // Docker Hub always needs chart name appended
+        format!("{}/{}", repository, chart_name)
+    } else if registry == "ghcr.io" && !repository.ends_with(&format!("/{}", chart_name)) {
+        // ghcr.io: only append if not already present
+        format!("{}/{}", repository, chart_name)
+    } else {
+        repository.clone()
+    };
+
+    // Get authentication token (use original repository for token scope)
+    let token = get_oci_token(&registry, &full_repository, config, verbose)?;
 
     // Build the tags list URL
-    let tags_url = format!("https://{}/v2/{}/tags/list", registry, repository);
+    let tags_url = format!("https://{}/v2/{}/tags/list", registry, full_repository);
 
     if verbose {
         eprintln!("  Fetching tags from: {}", tags_url);

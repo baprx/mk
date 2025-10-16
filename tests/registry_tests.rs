@@ -234,6 +234,59 @@ dependencies:
     );
 }
 
+/// Test bump with Docker Hub OCI registry (Bitnami MariaDB)
+#[test]
+fn test_bump_oci_registry_docker_hub() {
+    let temp_dir = TempDir::new().unwrap();
+
+    // Create Chart.yaml with Docker Hub OCI dependency
+    let chart_yaml = temp_dir.path().join("Chart.yaml");
+    fs::write(
+        &chart_yaml,
+        r#"apiVersion: v2
+name: test-app
+version: 1.0.0
+dependencies:
+  - name: mariadb
+    version: "15.0.0"
+    repository: "oci://registry-1.docker.io/bitnamicharts"
+"#,
+    )
+    .unwrap();
+
+    // Run bump command
+    let output = Command::cargo_bin("mk")
+        .unwrap()
+        .arg("bump")
+        .arg(temp_dir.path().to_str().unwrap())
+        .arg("--verbose")
+        .output()
+        .expect("Failed to execute bump command");
+
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    // Should detect mariadb
+    assert!(
+        stderr.contains("mariadb"),
+        "Should detect mariadb dependency"
+    );
+
+    // Should successfully authenticate with Docker Hub
+    assert!(
+        stderr.contains("auth.docker.io")
+            || stderr.contains("Successfully obtained anonymous token"),
+        "Should use Docker Hub auth endpoint: {}",
+        stderr
+    );
+
+    // Should fetch version successfully (no 401 error)
+    assert!(
+        !stderr.contains("HTTP 401"),
+        "Should not get 401 Unauthorized error: {}",
+        stderr
+    );
+}
+
 /// Test that both HTTP and OCI charts are found and versions are valid
 #[test]
 fn test_bump_validates_semver_for_both_registries() {
