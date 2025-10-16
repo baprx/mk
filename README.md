@@ -14,6 +14,17 @@ A CLI tool written in Rust for managing infrastructure deployments across multip
 
 ## Installation
 
+### From Release
+
+Download pre-built binaries from the [releases page](https://github.com/baprx/mk/releases):
+
+```bash
+# Download and install (example for Linux/macOS)
+curl -L https://github.com/baprx/mk/releases/latest/download/mk-<platform> -o mk
+chmod +x mk
+mv mk ~/.local/bin/
+```
+
 ### From Source
 
 ```bash
@@ -144,6 +155,32 @@ INFO: Updating selected dependencies...
 
 SUCCESS: 1 dependencies updated across 3 project(s)
 ```
+
+### Drift Detection
+
+Scan infrastructure for configuration drift across multiple projects and environments:
+
+```bash
+# Scan a directory for drift (Terraform & Helm)
+mk drift infrastructure
+
+# Filter by technology
+mk drift infrastructure --tech terraform
+
+# Filter by environment(s)
+mk drift infrastructure --env prod --env staging
+
+# Capture detailed output to logs
+mk drift infrastructure --capture --verbose
+
+# Scan with custom depth and ignore .gitignore
+mk drift infrastructure --max-depth 10 --no-ignore
+```
+
+**Exit codes:**
+- `0`: No drift detected
+- `2`: Drift detected
+- `1`: Errors occurred
 
 ### Global Options
 
