@@ -246,6 +246,7 @@ pub fn fetch_helm_chart_version(
 
 /// Parse OCI registry URL to extract registry hostname and repository path
 /// Example: oci://ghcr.io/org/chart -> ("ghcr.io", "org/chart")
+/// Note: Normalizes docker.io to registry-1.docker.io (Docker Hub's actual API endpoint)
 fn parse_oci_url(oci_url: &str) -> Result<(String, String)> {
     let url = oci_url
         .strip_prefix("oci://")
@@ -256,7 +257,14 @@ fn parse_oci_url(oci_url: &str) -> Result<(String, String)> {
         anyhow::bail!("Invalid OCI URL format: {}", oci_url);
     }
 
-    Ok((parts[0].to_string(), parts[1].to_string()))
+    // Normalize Docker Hub registry name to the actual API endpoint
+    let registry = if parts[0] == "docker.io" {
+        "registry-1.docker.io".to_string()
+    } else {
+        parts[0].to_string()
+    };
+
+    Ok((registry, parts[1].to_string()))
 }
 
 /// Get authentication token for an OCI registry
