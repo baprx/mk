@@ -13,6 +13,7 @@ pub struct Dependency {
     pub name: String,
     pub current_version: String,
     pub latest_version: String,
+    pub latest_app_version: Option<String>,
     pub file_path: String,
     pub line_number: usize,
     pub dep_type: DependencyType,
@@ -200,8 +201,14 @@ fn run_bump_single(project_path: &str, verbose: bool, include_prereleases: bool)
                 if verbose {
                     eprintln!("  Updating {} from repository: {}", dep.name, repository);
                 }
-                helm::update_helm_chart(&actual_path, &dep.name, &dep.latest_version)
-                    .context(format!("Failed to update {}", dep.name))?;
+                helm::update_helm_chart(
+                    &actual_path,
+                    &dep.name,
+                    &dep.current_version,
+                    &dep.latest_version,
+                    dep.latest_app_version.as_deref(),
+                )
+                .context(format!("Failed to update {}", dep.name))?;
                 eprintln!("  {} Updated {} in Chart.yaml", "✓".green(), dep.name);
             }
         }
@@ -568,9 +575,17 @@ fn run_bump_recursive(
         .map(|dep| dep.display_name())
         .collect();
 
+    // Pre-select if only one dependency is available
+    let defaults = if updates_available.len() == 1 {
+        vec![true]
+    } else {
+        vec![false; updates_available.len()]
+    };
+
     let selections = MultiSelect::new()
         .with_prompt("Select dependencies to update (Space to select, Enter to confirm)")
         .items(&items)
+        .defaults(&defaults)
         .interact()
         .context("Failed to get user selection")?;
 
@@ -609,8 +624,14 @@ fn run_bump_recursive(
                     .parent()
                     .and_then(|p| p.to_str())
                     .unwrap_or(&dep.file_path);
-                helm::update_helm_chart(project_path, &dep.name, &dep.latest_version)
-                    .context(format!("Failed to update {}", dep.name))?;
+                helm::update_helm_chart(
+                    project_path,
+                    &dep.name,
+                    &dep.current_version,
+                    &dep.latest_version,
+                    dep.latest_app_version.as_deref(),
+                )
+                .context(format!("Failed to update {}", dep.name))?;
                 eprintln!("  {} Updated {} in Chart.yaml", "✓".green(), dep.name);
             }
         }

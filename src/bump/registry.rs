@@ -76,12 +76,13 @@ pub fn fetch_terraform_module_version(
 }
 
 /// Fetch the latest version of a Helm chart from a Helm repository
+/// Returns (version, appVersion)
 pub fn fetch_helm_chart_version(
     repo_url: &str,
     chart_name: &str,
     verbose: bool,
     include_prereleases: bool,
-) -> Result<String> {
+) -> Result<(String, Option<String>)> {
     // Ensure repo_url ends with /index.yaml
     let index_url = if repo_url.ends_with("/index.yaml") {
         repo_url.to_string()
@@ -177,6 +178,20 @@ pub fn fetch_helm_chart_version(
         }
     }
 
+    // Build a map of version string to chart entry for lookup
+    let version_to_entry: std::collections::HashMap<String, &Yaml> = versions_array
+        .iter()
+        .filter_map(|entry| {
+            if let Some(hash) = entry.as_hash() {
+                hash.get(&Yaml::String("version".to_string()))
+                    .and_then(|v| v.as_str())
+                    .map(|version_str| (version_str.to_string(), entry))
+            } else {
+                None
+            }
+        })
+        .collect();
+
     let mut versions: Vec<Version> = version_strings
         .iter()
         .filter_map(|v| {
@@ -209,7 +224,24 @@ pub fn fetch_helm_chart_version(
         latest.to_string()
     };
 
-    Ok(latest_str)
+    // Find the appVersion for the latest version
+    let app_version = version_to_entry
+        .get(&latest_str)
+        .or_else(|| {
+            // Try without 'v' prefix
+            version_to_entry.get(&latest.to_string())
+        })
+        .and_then(|entry| {
+            if let Some(hash) = entry.as_hash() {
+                hash.get(&Yaml::String("appVersion".to_string()))
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string())
+            } else {
+                None
+            }
+        });
+
+    Ok((latest_str, app_version))
 }
 
 /// Parse OCI registry URL to extract registry hostname and repository path

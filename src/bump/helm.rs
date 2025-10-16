@@ -96,6 +96,7 @@ pub fn scan_helm_charts(
                     name: name.to_string(),
                     current_version: version.to_string(),
                     latest_version: version.to_string(), // Same as current for local
+                    latest_app_version: None,            // No appVersion for local files
                     file_path: chart_yaml_path.to_string_lossy().to_string(),
                     line_number,
                     dep_type: DependencyType::HelmChart {
@@ -110,6 +111,7 @@ pub fn scan_helm_charts(
                 if verbose {
                     eprintln!("  Fetching from OCI registry: {}", repository);
                 }
+                // OCI registries only return version, no appVersion available
                 registry::fetch_helm_chart_version_oci(
                     repository,
                     name,
@@ -117,7 +119,9 @@ pub fn scan_helm_charts(
                     verbose,
                     include_prereleases,
                 )
+                .map(|version| (version, None))
             } else {
+                // HTTP registries return (version, appVersion)
                 registry::fetch_helm_chart_version(repository, name, verbose, include_prereleases)
             };
 
@@ -130,11 +134,12 @@ pub fn scan_helm_charts(
                 .unwrap_or(1);
 
             match fetch_result {
-                Ok(latest_version) => {
+                Ok((latest_version, latest_app_version)) => {
                     dependencies.push(Dependency {
                         name: name.to_string(),
                         current_version: version.to_string(),
                         latest_version,
+                        latest_app_version,
                         file_path: chart_yaml_path.to_string_lossy().to_string(),
                         line_number,
                         dep_type: DependencyType::HelmChart {
@@ -158,6 +163,7 @@ pub fn scan_helm_charts(
                         name: name.to_string(),
                         current_version: version.to_string(),
                         latest_version: format!("ERROR: {}", e),
+                        latest_app_version: None,
                         file_path: chart_yaml_path.to_string_lossy().to_string(),
                         line_number,
                         dep_type: DependencyType::HelmChart {
@@ -173,7 +179,14 @@ pub fn scan_helm_charts(
 }
 
 /// Update a Helm chart version in Chart.yaml
-pub fn update_helm_chart(project_path: &str, chart_name: &str, new_version: &str) -> Result<()> {
+/// Also updates the Chart.yaml's version and appVersion fields if they match the old dependency version
+pub fn update_helm_chart(
+    project_path: &str,
+    chart_name: &str,
+    old_version: &str,
+    new_version: &str,
+    new_app_version: Option<&str>,
+) -> Result<()> {
     let chart_yaml_path = Path::new(project_path).join("Chart.yaml");
     let content = fs::read_to_string(&chart_yaml_path).context("Failed to read Chart.yaml")?;
 
@@ -182,8 +195,8 @@ pub fn update_helm_chart(project_path: &str, chart_name: &str, new_version: &str
         .first_mut()
         .ok_or_else(|| anyhow::anyhow!("Empty Chart.yaml"))?;
 
-    // Update the version in dependencies
     if let Some(hash) = doc.as_mut_hash() {
+        // Update the version in dependencies
         if let Some(Yaml::Array(ref mut deps)) =
             hash.get_mut(&Yaml::String("dependencies".to_string()))
         {
@@ -199,6 +212,46 @@ pub fn update_helm_chart(project_path: &str, chart_name: &str, new_version: &str
                             );
                         }
                     }
+                }
+            }
+        }
+
+        // Check if Chart.yaml's version field matches the old dependency version
+        // If so, update it to the new version
+        if let Some(Yaml::String(chart_version)) = hash.get(&Yaml::String("version".to_string())) {
+            let chart_version_clean = chart_version.trim_start_matches('v');
+            let old_version_clean = old_version.trim_start_matches('v');
+
+            if chart_version == old_version
+                || chart_version_clean == old_version
+                || chart_version == old_version_clean
+                || chart_version_clean == old_version_clean
+            {
+                hash.insert(
+                    Yaml::String("version".to_string()),
+                    Yaml::String(new_version.to_string()),
+                );
+            }
+        }
+
+        // Check if Chart.yaml's appVersion field matches the old dependency version
+        // If so, and we have a new appVersion from the registry, update it
+        if let Some(new_app_ver) = new_app_version {
+            if let Some(Yaml::String(chart_app_version)) =
+                hash.get(&Yaml::String("appVersion".to_string()))
+            {
+                let chart_app_version_clean = chart_app_version.trim_start_matches('v');
+                let old_version_clean = old_version.trim_start_matches('v');
+
+                if chart_app_version == old_version
+                    || chart_app_version_clean == old_version
+                    || chart_app_version == old_version_clean
+                    || chart_app_version_clean == old_version_clean
+                {
+                    hash.insert(
+                        Yaml::String("appVersion".to_string()),
+                        Yaml::String(new_app_ver.to_string()),
+                    );
                 }
             }
         }
