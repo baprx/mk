@@ -12,6 +12,9 @@ pub fn scan_helm_charts(
     verbose: bool,
     include_prereleases: bool,
 ) -> Result<Vec<Dependency>> {
+    // Load config to get OCI registry authentication
+    let config = crate::config::Config::load().unwrap_or_default();
+
     let mut dependencies = Vec::new();
 
     let chart_yaml_path = Path::new(project_path).join("Chart.yaml");
@@ -75,17 +78,23 @@ pub fn scan_helm_charts(
                 );
             }
 
-            // Skip OCI registries for now (would need authentication)
-            if repository.starts_with("oci://") {
+            // Fetch latest version - handle both OCI and HTTP registries
+            let fetch_result = if repository.starts_with("oci://") {
                 if verbose {
-                    eprintln!("  Skipping OCI registry: {}", repository);
+                    eprintln!("  Fetching from OCI registry: {}", repository);
                 }
-                continue;
-            }
+                registry::fetch_helm_chart_version_oci(
+                    repository,
+                    name,
+                    &config,
+                    verbose,
+                    include_prereleases,
+                )
+            } else {
+                registry::fetch_helm_chart_version(repository, name, verbose, include_prereleases)
+            };
 
-            // Fetch latest version
-            match registry::fetch_helm_chart_version(repository, name, verbose, include_prereleases)
-            {
+            match fetch_result {
                 Ok(latest_version) => {
                     // Find line number (approximate)
                     let line_number = content

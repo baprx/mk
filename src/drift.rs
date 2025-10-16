@@ -238,7 +238,7 @@ fn check_terraform_drift(
     environment: &str,
     verbose: bool,
 ) -> Result<DriftResult> {
-    use crate::commands::Action;
+    use crate::Action;
 
     if verbose {
         eprintln!(
@@ -289,7 +289,7 @@ fn check_terraform_drift(
 
 /// Check helm drift using helm diff
 fn check_helm_drift(project_path: &str, environment: &str, verbose: bool) -> Result<DriftResult> {
-    use crate::commands::Action;
+    use crate::Action;
 
     if verbose {
         eprintln!(
