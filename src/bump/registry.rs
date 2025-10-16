@@ -388,16 +388,13 @@ pub fn fetch_helm_chart_version_oci(
         );
     }
 
-    // For Docker Hub and some ghcr.io repos, the chart name needs to be appended to the repository path
-    // Docker Hub format: registry-1.docker.io/v2/bitnamicharts/mariadb/tags/list
-    // ghcr.io format (varies):
-    //   - ghcr.io/v2/grafana/helm-charts/grafana-operator/tags/list (needs chart name)
-    //   - ghcr.io/v2/prometheus-community/charts/prometheus/tags/list (already has chart name)
-    let full_repository = if registry == "registry-1.docker.io" {
-        // Docker Hub always needs chart name appended
-        format!("{}/{}", repository, chart_name)
-    } else if registry == "ghcr.io" && !repository.ends_with(&format!("/{}", chart_name)) {
-        // ghcr.io: only append if not already present
+    // All OCI registries follow the same pattern: the chart name is part of the repository path
+    // Examples:
+    //   - Docker Hub: bitnamicharts/mariadb
+    //   - ghcr.io: grafana/helm-charts/grafana-operator
+    //   - Any OCI: repo/path/chart-name
+    let full_repository = if !repository.ends_with(&format!("/{}", chart_name)) {
+        // Append chart name if not already present in the path
         format!("{}/{}", repository, chart_name)
     } else {
         repository.clone()
