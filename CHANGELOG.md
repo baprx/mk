@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.1](https://github.com/baprx/mk/compare/v0.6.0...v0.6.1) (2025-10-18)
+
+
+### Bug Fixes
+
+* **completion:** include ignored environments and outputs in shell completions ([22c30a7](https://github.com/baprx/mk/commit/22c30a717aa2c18ba8120bfd127e38bdcefbfef1))
+
 ## [0.6.0](https://github.com/baprx/mk/compare/v0.5.11...v0.6.0) (2025-10-16)
 
 
