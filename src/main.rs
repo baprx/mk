@@ -368,8 +368,9 @@ fn complete_env(project_path: &str) -> Result<()> {
     // Silently detect technology and get environments
     // This is used by shell completion, so we only output environment names
     // Pass silent=true to suppress all INFO messages
+    // Always use no_ignore=true for completion to show all available environments
     if let Ok((techno, actual_path)) = techno::detect_technology(project_path, None, true) {
-        if let Ok(envs) = env::get_environments(&actual_path, techno, false) {
+        if let Ok(envs) = env::get_environments(&actual_path, techno, true) {
             // Print each environment on a separate line for shell completion
             for env in envs {
                 println!("{}", env);
@@ -391,8 +392,12 @@ fn complete_output_key(project_path: &str) -> Result<()> {
     let mut output_keys = HashSet::new();
 
     // Walk through the project directory looking for .tf files
+    // Always disable gitignore for completion to show all available outputs
     for entry in WalkBuilder::new(project_path)
         .max_depth(Some(3))
+        .git_ignore(false)
+        .git_exclude(false)
+        .git_global(false)
         .build()
         .filter_map(|e| e.ok())
     {
