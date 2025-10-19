@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0](https://github.com/baprx/mk/compare/v0.6.1...v0.7.0) (2025-10-19)
+
+
+### Features
+
+* **completions:** add support for fish ([1e4cdbf](https://github.com/baprx/mk/commit/1e4cdbfc8576039b4da9f91b4863683d37717970))
+* **completions:** improve fish completions by disabling the default file/directory for env/output keys ([235e807](https://github.com/baprx/mk/commit/235e807798968dc395f502f6c82607490045910c))
+
 ## [0.6.1](https://github.com/baprx/mk/compare/v0.6.0...v0.6.1) (2025-10-18)
 
 
