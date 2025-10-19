@@ -431,6 +431,7 @@ fn generate_completions(shell: Shell) {
     let shell_type = match shell {
         Shell::Bash => CompletionShell::Bash,
         Shell::Zsh => CompletionShell::Zsh,
+        Shell::Fish => CompletionShell::Fish,
     };
 
     eprintln!("Generating completion file for {}...", shell);
@@ -467,6 +468,10 @@ fn generate_completions(shell: Shell) {
 
             print!("{}", processed);
         }
+        Shell::Fish => {
+            print!("{}", base_completions);
+            print!("{}", get_fish_dynamic_completion_helpers());
+        }
     }
 }
 
@@ -494,6 +499,61 @@ _mk_output_keys() {
     fi
 }
 
+"#
+}
+
+fn get_fish_dynamic_completion_helpers() -> &'static str {
+    r#"
+# Custom completion helpers for Fish shell
+
+# Helper function to get project path from commandline
+function __mk_get_project_path
+    # Get all tokens from the command line
+    set -l tokens (commandline -opc)
+
+    # Find the subcommand position
+    set -l subcommand_pos 0
+    for i in (seq 2 (count $tokens))
+        switch $tokens[$i]
+            case apply check diff plan delete destroy uninstall deps template output list show unlock duplicate
+                set subcommand_pos $i
+                break
+        end
+    end
+
+    # Project path is the next argument after subcommand
+    if test $subcommand_pos -gt 0
+        set -l project_pos (math $subcommand_pos + 1)
+        if test (count $tokens) -ge $project_pos
+            echo $tokens[$project_pos]
+        end
+    end
+end
+
+# Complete environments dynamically
+function __mk_complete_environments
+    set -l project_path (__mk_get_project_path)
+    if test -n "$project_path"
+        mk complete-env "$project_path" 2>/dev/null
+    end
+end
+
+# Complete output keys dynamically
+function __mk_complete_output_keys
+    set -l project_path (__mk_get_project_path)
+    if test -n "$project_path"
+        mk complete-output-key "$project_path" 2>/dev/null
+    end
+end
+
+# Add dynamic completions for environment arguments
+complete -c mk -n "__fish_seen_subcommand_from apply check diff plan delete destroy uninstall deps template list show unlock duplicate; and not __fish_seen_subcommand_from (__mk_complete_environments)" -a "(__mk_complete_environments)" -d "Environment name"
+
+# Add dynamic completions for source_env in duplicate command
+complete -c mk -n "__fish_seen_subcommand_from duplicate; and not __fish_seen_subcommand_from (__mk_complete_environments)" -a "(__mk_complete_environments)" -d "Source environment"
+
+# Add dynamic completions for output keys in output command
+complete -c mk -n "__fish_seen_subcommand_from output" -a "(__mk_complete_output_keys)" -d "Output key"
 "#
 }
 

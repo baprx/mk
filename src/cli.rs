@@ -220,6 +220,7 @@ pub enum Commands {
 pub enum Shell {
     Bash,
     Zsh,
+    Fish,
 }
 
 impl std::fmt::Display for Shell {
@@ -227,6 +228,7 @@ impl std::fmt::Display for Shell {
         match self {
             Shell::Bash => write!(f, "bash"),
             Shell::Zsh => write!(f, "zsh"),
+            Shell::Fish => write!(f, "fish"),
         }
     }
 }
