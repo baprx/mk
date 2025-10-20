@@ -546,7 +546,7 @@ function __mk_complete_output_keys
     end
 end
 
-function __count_args
+function __mk_complete_count_args
     # Get the full commandline buffer content
     set -l line (commandline -cp)
     # Use the fish 'string' builtin to split by whitespace ignoring slashes
@@ -555,10 +555,10 @@ function __count_args
 end
 
 # Add dynamic completions for environment arguments
-complete -c mk -f -n "__fish_seen_subcommand_from apply check diff plan delete destroy uninstall deps template output list show unlock duplicate; and test (count_args) -eq 4" -a "(__mk_complete_environments)" -d "Environment name"
+complete -c mk -f -n "__fish_seen_subcommand_from apply check diff plan delete destroy uninstall deps template output list show unlock duplicate; and test (__mk_complete_count_args) -eq 4" -a "(__mk_complete_environments)" -d "Environment name"
 
 # Add dynamic completions for output keys in output command
-complete -c mk -f -n '__fish_seen_subcommand_from output; and test (__count_args) -eq 5' -a '(__mk_complete_output_keys)' -d "Output key"
+complete -c mk -f -n '__fish_seen_subcommand_from output; and test (__mk_complete_count_args) -eq 5' -a '(__mk_complete_output_keys)' -d "Output key"
 "#
 }
 
