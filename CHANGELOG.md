@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/baprx/mk/compare/v0.7.0...v0.7.1) (2025-10-20)
+
+
+### Bug Fixes
+
+* **completions:** update count_args function name ([b8b1527](https://github.com/baprx/mk/commit/b8b152789a736efc3aee83f5d2670e5685cb0190))
+
 ## [0.7.0](https://github.com/baprx/mk/compare/v0.6.1...v0.7.0) (2025-10-19)
 
 
