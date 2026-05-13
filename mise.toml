@@ -9,7 +9,7 @@ kustomize = "5.8.1"
 pre-commit = "4.6.0"
 rust = { version = "stable", components = "llvm-tools" }
 tfswitch = "1.17.1"
-watchexec = "2.3.2"
+watchexec = "2.5.1"
 
 [tasks.build]
 run = "cargo build --release --locked"
