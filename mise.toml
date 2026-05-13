@@ -6,7 +6,7 @@ ansible = "12.3.0"
 helm = "4.1.4"
 helmfile = "1.4.4"
 kustomize = "5.8.1"
-pre-commit = "4.5.1"
+pre-commit = "4.6.0"
 rust = { version = "stable", components = "llvm-tools" }
 tfswitch = "1.7.0"
 watchexec = "2.3.2"
