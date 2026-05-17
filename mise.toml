@@ -4,7 +4,7 @@
 "ubi:taiki-e/cargo-llvm-cov" = "latest"
 ansible = "12.3.0"
 helm = "4.1.4"
-helmfile = "1.4.5"
+helmfile = "1.5.0"
 kustomize = "5.8.1"
 pre-commit = "4.6.0"
 rust = { version = "stable", components = "llvm-tools" }
