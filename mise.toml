@@ -3,7 +3,7 @@
 "ubi:rustsec/rustsec" = { version = "cargo-audit/v0.21.2", exe = "cargo-audit" }
 "ubi:taiki-e/cargo-llvm-cov" = "latest"
 ansible = "12.3.0"
-helm = "4.1.4"
+helm = "4.2.0"
 helmfile = "1.5.1"
 kustomize = "5.8.1"
 pre-commit = "4.6.0"
