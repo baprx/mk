@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.2](https://github.com/baprx/mk/compare/v0.7.1...v0.7.2) (2026-08-22)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate attohttpc to 0.31.0 ([#155](https://github.com/baprx/mk/issues/155)) ([bb77eb5](https://github.com/baprx/mk/commit/bb77eb586d6018d0de463a31826b3b53957b77b0))
+* **deps:** update rust crate etcetera to 0.11.0 ([#42](https://github.com/baprx/mk/issues/42)) ([1354e09](https://github.com/baprx/mk/commit/1354e09aa5c0c49e1752d0e7dccc011f04bcd116))
+* **deps:** update rust crate toml to v1 ([5de5292](https://github.com/baprx/mk/commit/5de529218dea1a2e0de364ba7a54c792d9e73462))
+* **deps:** update rust crate toml to v1 ([936a3c2](https://github.com/baprx/mk/commit/936a3c2f5e2c061aba033c388eeb5d607f30317d))
+* **deps:** update rust crate toml_edit to 0.24.0 ([#77](https://github.com/baprx/mk/issues/77)) ([9aef0f5](https://github.com/baprx/mk/commit/9aef0f58060688233159caa920a16c2a12a59375))
+* **deps:** update rust crate toml_edit to 0.25.0 ([#106](https://github.com/baprx/mk/issues/106)) ([d46a7cb](https://github.com/baprx/mk/commit/d46a7cbbee03617cd3007367a7868b7d334bd4a9))
+* **deps:** update rust crate yaml-rust2 to 0.11.0 ([#71](https://github.com/baprx/mk/issues/71)) ([17dce52](https://github.com/baprx/mk/commit/17dce520ff9626f0172fcfd3939948ac9fd13c28))
+
 ## [0.7.1](https://github.com/baprx/mk/compare/v0.7.0...v0.7.1) (2025-10-20)
 
 
