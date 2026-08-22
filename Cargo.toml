@@ -38,7 +38,7 @@ predicates = "=3.1.4"
 tempfile = "=3.27.0"
 
 # Test serialization
-serial_test = "=3.5.0"
+serial_test = "=4.0.1"
 
 [profile.release]
 strip = true
