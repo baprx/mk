@@ -2,7 +2,7 @@
 "ubi:nextest-rs/nextest" = { version = "cargo-nextest-0.9.105", exe = "cargo-nextest" }
 "ubi:rustsec/rustsec" = { version = "cargo-audit/v0.21.2", exe = "cargo-audit" }
 "ubi:taiki-e/cargo-llvm-cov" = "latest"
-ansible = "12.3.0"
+ansible = "14.3.1"
 helm = "4.2.3"
 helmfile = "1.7.2"
 kustomize = "5.8.1"
